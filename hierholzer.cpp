@@ -7,19 +7,19 @@ vector<vector<int>> ciclos;
 vector<int> sequencia;
 
 void dfs(vector<vector<int>> g, vector<vector<bool>> &vis ,int v){
-    
+
 
     for (auto w : g[v]) if (!vis[v][w]){
         sequencia.push_back(v);
         vis[v][w] = true;
         vis[w][v] = true;
-            
+
         auto it = find(sequencia.begin(), sequencia.end(), w);
 
         if (it != sequencia.end()){
             sequencia.push_back(w);
             ciclos.push_back(sequencia);
-  
+
             for (auto i : sequencia){
                 cout << i+1 << endl;
             }
