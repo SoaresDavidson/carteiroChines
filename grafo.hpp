@@ -14,6 +14,7 @@ public:
 
 class Vertice {
 public:
+    int id;
     vector<Aresta> arestas;
     int grau = 0;
     Vertice() {}
