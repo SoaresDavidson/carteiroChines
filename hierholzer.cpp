@@ -1,48 +1,53 @@
 #include <iostream>
 #include <bits/stdc++.h>
+#include "grafo.hpp"
 
 using namespace std;
 
 vector<vector<int>> ciclos;
 vector<int> sequencia;
 
-void dfs(vector<vector<int>> g, vector<vector<bool>> &vis ,int v){
-    
+void dfs(Grafo *g, vector<vector<bool>> &vis ,int v){
+    for (auto& aresta : g->vertices[v]->arestas) {
+        int w = aresta.destino->id;
+        if (!vis[v][w]){
+            sequencia.push_back(v);
+            vis[v][w] = true;
+            vis[w][v] = true;
+                
+            auto it = find(sequencia.begin(), sequencia.end(), w);
 
-    for (auto w : g[v]) if (!vis[v][w]){
-        sequencia.push_back(v);
-        vis[v][w] = true;
-        vis[w][v] = true;
-            
-        auto it = find(sequencia.begin(), sequencia.end(), w);
-
-        if (it != sequencia.end()){
-            sequencia.push_back(w);
-            ciclos.push_back(sequencia);
-  
-            for (auto i : sequencia){
-                cout << i+1 << endl;
+            if (it != sequencia.end()){
+                sequencia.push_back(w);
+                ciclos.push_back(sequencia);
+                sequencia.clear();
             }
-            sequencia = vector<int>();
-        }
 
-        cout << v+1 << " vai para " << w+1 << endl;
-        dfs(g, vis, w);
+            cout << v+1 << " vai para " << w+1 << endl;
+            dfs(g, vis, w);
+        }
     }
 }
 
 int main(){
     int v, a; cin >> v >> a;
+    Grafo grafo = Grafo();
+
+    for (int i = 0; i < v; i++){
+        Vertice* novo = new Vertice();
+        novo->id = i;
+        grafo.adicionar_vertice(novo);
+    }
+
     vector<vector<bool>> vis(v, vector<bool>(v, false));
-    vector<vector<int>> grafo(v);
 
     for(int i = 0;i < a; i++){
         int v1, v2; cin >> v1 >> v2; v1--;v2--;
-        grafo[v1].push_back(v2);
-        grafo[v2].push_back(v1);
+        grafo.vertices[v1]->adicionar_aresta(1, grafo.vertices[v2]);
+        grafo.vertices[v2]->adicionar_aresta(1, grafo.vertices[v1]);
     }
 
-    dfs(grafo, vis, 0);
+    dfs(&grafo, vis, 0);
 
     for (auto i : ciclos){
         for (auto j : i){
@@ -66,7 +71,7 @@ int main(){
 
     for (auto i : euleriano)
         cout << i+1 << " ";
-    
+
 }
 
 // 6 10
