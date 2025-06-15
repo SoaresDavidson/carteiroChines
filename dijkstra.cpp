@@ -8,32 +8,78 @@ const ll INF = LLONG_MAX;
 using namespace std;
 
 pair<ll,vector<Vertice*>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino);
-
+Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grau);
 int main(){
-Grafo g;
-    int n,m; 
-    cin >> n >> m;
-    for(int i=0;i <n;i++){
-        Vertice* a = new Vertice();
-        a -> id = i;
-        g.adicionar_vertice(a);
-    }
+Grafo g = gerar_grafo_aleatorio(789,12,4);
+g.imprimir_grafo();
+    // int n,m; 
+    // cin >> n >> m;
+    // for(int i=0;i <n;i++){
+    //     Vertice* a = new Vertice();
+    //     a -> id = i;
+    //     g.adicionar_vertice(a);
+    // }
 
-    for(int i = 0;i<m;i++){
-        ll inicio,destino,peso; 
-        cin >> inicio >> destino >> peso;
-        // inicio--,destino--;
-        g.vertices[inicio]->adicionar_aresta(peso,g.vertices[destino]);
-        g.vertices[destino]->adicionar_aresta(peso,g.vertices[inicio]);
+    // for(int i = 0;i<m;i++){
+    //     ll inicio,destino,peso; 
+    //     cin >> inicio >> destino >> peso;
+    //     // inicio--,destino--;
+    //     g.vertices[inicio]->adicionar_aresta(peso,g.vertices[destino]);
+    //     g.vertices[destino]->adicionar_aresta(peso,g.vertices[inicio]);
+    // }
+    vector<int>v;
+    for(auto ve : g.vertices){
+        if(v.size() == 2) break;
+        if(ve -> grau%2!=0) v.push_back(ve->id);
+        
     }
-    Vertice* inicio = g.vertices[0];
-    Vertice* fim = g.vertices[8];
+    Vertice* inicio = g.vertices[v[0]];
+    Vertice* fim = g.vertices[v[1]];
     auto [distancia, caminho] = dijkstra(&g,inicio,fim);
     cout << distancia << endl;
     for(auto v : caminho){
         cout << v->id << " ";
     }
     return 0;
+}
+
+
+Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
+    Grafo g;
+
+    for(int i = 0; i < qtdVertices; i++){
+        Vertice* v = new Vertice();
+        v-> id = i;
+        g.adicionar_vertice(v);
+    }
+
+    if (qtdVertices <= 1) {
+        return g;
+    }
+    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+   
+    uniform_int_distribution<ll> dist_peso(1, pesoMax - 1); 
+    uniform_int_distribution<int> dist_vertice(0, qtdVertices - 1); 
+
+    for(int i = 0; i < qtdVertices; ++i){
+        Vertice* verticeOrigem = g.vertices[i];
+        int arestasAdicionadasParaEsteVertice = 0;
+        while (arestasAdicionadasParaEsteVertice < grauMax && arestasAdicionadasParaEsteVertice < qtdVertices - 1) {
+            int indiceDestino = dist_vertice(rng);
+            Vertice* verticeDestino = g.vertices[indiceDestino];
+
+            if (verticeOrigem == verticeDestino) {
+                continue;
+            }
+            ll peso = dist_peso(rng); 
+            verticeOrigem->adicionar_aresta(peso, verticeDestino);
+            verticeDestino->adicionar_aresta(peso, verticeOrigem);
+
+            arestasAdicionadasParaEsteVertice++;
+        }
+    }
+
+    return g;
 }
 
 pair<ll,vector<Vertice*>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino){

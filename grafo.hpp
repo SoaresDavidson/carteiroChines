@@ -44,5 +44,14 @@ public:
         vertices.push_back(v);
         ordem++;
     }
+    void imprimir_grafo(){
+        for(auto vertice : vertices){
+            cout << vertice->id << " ";
+            for(auto aresta : vertice->arestas){
+                cout << "{"<<aresta.destino->id << ",peso:" << aresta.peso << "}";
+            }
+            cout << endl;
+        }
+    }
 };
 #endif
