@@ -67,7 +67,7 @@ int main()
     emparelhamentos(&grafo.vertices, &emparelhados);
     ll o = emparelhados.size();
 
-    if (o == 0) cout << "Não tem é nada no vetor" << endl;
+    if (o == 0) cout << "Nao tem e nada no vetor" << endl;
     for (ll i = 0; i < o; i++)
     {
         ll m = emparelhados[i].size();
