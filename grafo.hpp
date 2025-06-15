@@ -10,6 +10,7 @@ public:
     ll peso;
     Vertice* destino; 
     Aresta(ll p, Vertice* d) : peso(p), destino(d) {}
+    Aresta() : peso(0), destino(nullptr) {}
 };
 
 class Vertice {
