@@ -10,27 +10,28 @@ using namespace std;
 
 
 int main(){
-    int qtdVertices,qtdArestas; 
+    // int qtdVertices,qtdArestas; 
 
-    cout << "Informe a quantidade de vertices e a de Arestas" <<endl;
-    cin >> qtdVertices >> qtdArestas;
-    Grafo grafo;
+    // cout << "Informe a quantidade de vertices e a de Arestas" <<endl;
+    // cin >> qtdVertices >> qtdArestas;
+    // Grafo grafo;
 
-    //adicionando os N vertices no grafo
-    for(int i=0;i <qtdVertices;i++){
-        Vertice* a = new Vertice();
-        a -> id = i;
-        grafo.adicionar_vertice(a);
-    }
+    // //adicionando os N vertices no grafo
+    // for(int i=0;i <qtdVertices;i++){
+    //     Vertice* a = new Vertice();
+    //     a -> id = i;
+    //     grafo.adicionar_vertice(a);
+    // }
 
-    cout << "Insira: (vertice inicial vertice final peso) o primeiro vertice comeca no 0" << endl;
-    //recebendo as arestas e construindo o grafo
-    for(int i = 0;i<qtdArestas;i++){
-        ll inicio,destino,peso; 
-        cin >> inicio >> destino >> peso;
-        grafo.vertices[inicio]->adicionar_aresta(peso,grafo.vertices[destino]);
-        grafo.vertices[destino]->adicionar_aresta(peso,grafo.vertices[inicio]);
-    }
+    // cout << "Insira: (vertice inicial vertice final peso) o primeiro vertice comeca no 0" << endl;
+    // //recebendo as arestas e construindo o grafo
+    // for(int i = 0;i<qtdArestas;i++){
+    //     ll inicio,destino,peso; 
+    //     cin >> inicio >> destino >> peso;
+    //     grafo.vertices[inicio]->adicionar_aresta(peso,grafo.vertices[destino]);
+    //     grafo.vertices[destino]->adicionar_aresta(peso,grafo.vertices[inicio]);
+    // }
+    Grafo grafo = gerar_grafo_aleatorio(4,12,2);
     cout << "Grafo original"<< endl;
     grafo.imprimir_grafo(); 
 
@@ -66,6 +67,7 @@ int main(){
     grafo.imprimir_grafo();
     cout << "caminho euleriano: " << endl;
     hierholzer(&grafo);
+    grafo.imprimir_grafo();
 }
 //grafo que eu mandei no grupo 
 // 6 7
@@ -73,6 +75,6 @@ int main(){
 // 1 2 1
 // 1 4 4
 // 2 3 3
-// 5 4 6
+// 3 4 6
 // 3 5 1
 // 4 5 2

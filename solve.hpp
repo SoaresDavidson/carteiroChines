@@ -210,11 +210,9 @@ void dfs(Grafo *g, int v){
             sequencia.push_back(pai);
             ciclos.push_back(sequencia);
             sequencia.clear();
-            cout << "ciclo!" << endl;
             pai = -1;
         }
 
-        cout << v+1 << " vai para " << w+1 << endl;
         dfs(g, w);
     }
 }
