@@ -1,48 +1,59 @@
 #include <iostream>
 #include <bits/stdc++.h>
+#include "grafo.hpp"
 
 using namespace std;
 
 vector<vector<int>> ciclos;
 vector<int> sequencia;
+int pai = -1;
 
-void dfs(vector<vector<int>> g, vector<vector<bool>> &vis ,int v){
+void dfs(Grafo *g, int v){
 
+    for (auto& aresta : g->vertices[v]->arestas) {
+        if (pai == -1) pai = v;
+        int w = aresta.destino->id;
 
-    for (auto w : g[v]) if (!vis[v][w]){
+        if (g->vertices[v]->grau == 0) return;
+
         sequencia.push_back(v);
-        vis[v][w] = true;
-        vis[w][v] = true;
+        g->vertices[v]->remover_aresta(w);
+        g->vertices[w]->remover_aresta(v);
+            
 
-        auto it = find(sequencia.begin(), sequencia.end(), w);
-
-        if (it != sequencia.end()){
-            sequencia.push_back(w);
+        if (pai == w){
+            sequencia.push_back(pai);
             ciclos.push_back(sequencia);
-
-            for (auto i : sequencia){
-                cout << i+1 << endl;
-            }
-            sequencia = vector<int>();
+            sequencia.clear();
+            cout << "ciclo!" << endl;
+            pai = -1;
         }
 
         cout << v+1 << " vai para " << w+1 << endl;
-        dfs(g, vis, w);
+        dfs(g, w);
+        
     }
 }
 
 int main(){
     int v, a; cin >> v >> a;
+    Grafo grafo = Grafo();
+
+    for (int i = 0; i < v; i++){
+        Vertice* novo = new Vertice();
+        novo->id = i;
+        grafo.adicionar_vertice(novo);
+    }
+
     vector<vector<bool>> vis(v, vector<bool>(v, false));
-    vector<vector<int>> grafo(v);
 
     for(int i = 0;i < a; i++){
         int v1, v2; cin >> v1 >> v2; v1--;v2--;
-        grafo[v1].push_back(v2);
-        grafo[v2].push_back(v1);
+        grafo.vertices[v1]->adicionar_aresta(1, grafo.vertices[v2]);
+        grafo.vertices[v2]->adicionar_aresta(1, grafo.vertices[v1]);
     }
-
-    dfs(grafo, vis, 0);
+    pai = 0;
+    dfs(&grafo, 0);
 
     for (auto i : ciclos){
         for (auto j : i){
@@ -50,9 +61,9 @@ int main(){
         }
         cout << endl;
     }
+    cout << endl;
 
 
-    //a.insert(a.begin() + 1, b.begin(), b.end()); // insert b into a at index 1
     vector<int> euleriano;
     for (auto i : ciclos){
         if (euleriano.empty()){
@@ -61,12 +72,13 @@ int main(){
         }
 
         auto it = find(euleriano.begin(), euleriano.end(), i[0]);
+        // if (it == euleriano.end()) continue;
         euleriano.insert(it+1, i.begin()+1, i.end());
     }
 
     for (auto i : euleriano)
         cout << i+1 << " ";
-    
+
 }
 
 // 6 10
@@ -79,4 +91,18 @@ int main(){
 // 3 5
 // 4 5
 // 4 6
+// 5 6
+
+// 6 12
+// 1 2
+// 2 3
+// 3 6
+// 6 5
+// 5 4
+// 4 1
+// 1 5
+// 2 6
+// 5 3
+// 1 2
+// 3 5
 // 5 6

@@ -1,6 +1,7 @@
 #ifndef GRAFO_H
 #define GRAFO_H
 #define ll long long 
+#include <algorithm>
 #include <vector>
 using namespace std;
 class Vertice;
@@ -10,6 +11,7 @@ public:
     ll peso;
     Vertice* destino; 
     Aresta(ll p, Vertice* d) : peso(p), destino(d) {}
+    Aresta() : peso(0), destino(nullptr) {}
 };
 
 class Vertice {
@@ -25,6 +27,29 @@ public:
         Aresta aresta(peso, destino);
         arestas.push_back(aresta);
         aumentar_grau();
+    }
+    
+    Aresta* find_aresta(int id){
+        if (arestas.empty()) return nullptr;
+        for (auto &i : arestas){
+            if (i.destino->id == id){
+                return &i;
+            }
+        }
+        return nullptr;
+    }
+
+    void remover_aresta(int id){
+
+        for (size_t i = 0; i < arestas.size(); i++){
+            if (arestas[i].destino->id == id){
+                arestas.erase(arestas.begin() + i);
+                grau--;
+                return;
+            }
+        }
+
+        throw runtime_error("você está tentando remover uma aresta que não existe");
     }
 };
 
