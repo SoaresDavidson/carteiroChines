@@ -31,29 +31,13 @@ void dfs(Grafo *g, int v){
 
         cout << v+1 << " vai para " << w+1 << endl;
         dfs(g, w);
-        
     }
 }
 
-int main(){
-    int v, a; cin >> v >> a;
-    Grafo grafo = Grafo();
+void hierholzer(Grafo* g){
+    // Grafo g_clone = *g; 
 
-    for (int i = 0; i < v; i++){
-        Vertice* novo = new Vertice();
-        novo->id = i;
-        grafo.adicionar_vertice(novo);
-    }
-
-    vector<vector<bool>> vis(v, vector<bool>(v, false));
-
-    for(int i = 0;i < a; i++){
-        int v1, v2; cin >> v1 >> v2; v1--;v2--;
-        grafo.vertices[v1]->adicionar_aresta(1, grafo.vertices[v2]);
-        grafo.vertices[v2]->adicionar_aresta(1, grafo.vertices[v1]);
-    }
-    pai = 0;
-    dfs(&grafo, 0);
+    dfs(g, 0);
 
     for (auto i : ciclos){
         for (auto j : i){
@@ -76,8 +60,32 @@ int main(){
         euleriano.insert(it+1, i.begin()+1, i.end());
     }
 
-    for (auto i : euleriano)
+
+    for (auto i : euleriano){
         cout << i+1 << " ";
+    }
+}
+
+int main(){
+    int v, a; cin >> v >> a;
+    Grafo grafo = Grafo();
+
+    for (int i = 0; i < v; i++){
+        Vertice* novo = new Vertice();
+        novo->id = i;
+        grafo.adicionar_vertice(novo);
+    }
+
+    for(int i = 0;i < a; i++){
+        int v1, v2; cin >> v1 >> v2; v1--;v2--;
+        grafo.vertices[v1]->adicionar_aresta(1, grafo.vertices[v2]);
+        grafo.vertices[v2]->adicionar_aresta(1, grafo.vertices[v1]);
+    }
+    pai = 0;
+    dfs(&grafo, 0);
+
+    hierholzer(&grafo);
+    return 0;
 
 }
 
