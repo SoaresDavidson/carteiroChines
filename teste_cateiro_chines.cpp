@@ -72,8 +72,10 @@ int main(){
     cout << "Grafo final"<< endl;
     grafo.imprimir_grafo();
     cout << "caminho euleriano: " << endl;
-    hierholzer(&grafo);
-    grafo.imprimir_grafo();
+    vector<Vertice*> resultado = hierholzer(&grafo);
+    for(auto i : resultado){
+        cout << i->id+1 << " ";
+    }
 }
 //grafo que eu mandei no grupo 
 // 6 7

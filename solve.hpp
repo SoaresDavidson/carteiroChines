@@ -191,48 +191,40 @@ void emparelhamentos(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, V
     }
 }
 
-vector<vector<int>> ciclos;
-vector<int> sequencia;
-int pai = -1;
-void dfs(Grafo *g, int v){
+vector<vector<Vertice*>> ciclos;
+vector<Vertice*> sequencia;
+Vertice* pai = nullptr;
 
-    for (auto& aresta : g->vertices[v]->arestas) {
-        if (pai == -1) pai = v;
+void dfs(Grafo *g, int v){
+    Vertice* Vertice = g->vertices[v];
+    for (auto& aresta : Vertice->arestas) {
+        if (pai == nullptr) pai = Vertice;
         int w = aresta.destino->id;
 
-        if (g->vertices[v]->grau == 0) return;
+        if (Vertice->grau == 0) return;
 
-        sequencia.push_back(v);
-        g->vertices[v]->remover_aresta(w);
-        g->vertices[w]->remover_aresta(v);
+        sequencia.push_back(Vertice);
+        Vertice->remover_aresta(w);
+        g->vertices[w]->remover_aresta(Vertice->id);
             
 
-        if (pai == w){
+        if (pai->id == w){
             sequencia.push_back(pai);
             ciclos.push_back(sequencia);
             sequencia.clear();
-            pai = -1;
+            // cout << "ciclo!" << endl;
+            pai = nullptr;
         }
 
+        // cout << v+1 << " vai para " << w+1 << endl;
         dfs(g, w);
     }
 }
 
-void hierholzer(Grafo* g ){
-    // Grafo g_clone = *g; 
-    
+vector<Vertice*> hierholzer(Grafo* g){
     dfs(g, 0);
 
-    for (auto i : ciclos){
-        for (auto j : i){
-            cout << j << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-
-
-    vector<int> euleriano;
+    vector<Vertice*> euleriano;
     for (auto i : ciclos){
         if (euleriano.empty()){
             euleriano.insert(euleriano.begin(), i.begin(), i.end());
@@ -244,10 +236,7 @@ void hierholzer(Grafo* g ){
         euleriano.insert(it+1, i.begin()+1, i.end());
     }
 
-
-    for (auto i : euleriano){
-        cout << i << " ";
-    }
+    return euleriano;
 }
 
 
