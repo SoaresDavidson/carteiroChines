@@ -51,6 +51,7 @@ Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
             if (verticeOrigem == verticeDestino) {
                 continue;
             }
+            if(verticeOrigem->grau >= grauMax or verticeDestino->grau >= grauMax) break;
             ll peso = dist_peso(rng); 
             verticeOrigem->adicionar_aresta(peso, verticeDestino);
             verticeDestino->adicionar_aresta(peso, verticeOrigem);

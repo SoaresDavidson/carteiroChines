@@ -31,11 +31,17 @@ int main(){
     //     grafo.vertices[inicio]->adicionar_aresta(peso,grafo.vertices[destino]);
     //     grafo.vertices[destino]->adicionar_aresta(peso,grafo.vertices[inicio]);
     // }
-    Grafo grafo = gerar_grafo_aleatorio(4,12,2);
+    Grafo grafo = gerar_grafo_aleatorio(120,20,3);
     cout << "Grafo original"<< endl;
     grafo.imprimir_grafo(); 
 
     vector<Vertice*> vertices_impares = impares(&grafo);
+
+    if(vertices_impares.size()%2!=0) {
+        cout << "Nao da pra aplicar o carteiro chines" << endl;
+        return 0;
+    }
+
     vector<vector<pair<Vertice*, Vertice*>>> emparelhamentos_gerados;
 
     emparelhamentos(&vertices_impares,&emparelhamentos_gerados);
