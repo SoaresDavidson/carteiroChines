@@ -33,14 +33,17 @@ vector<int> descoberta;
 vector<int> low;
 int tempo = 0;
 
-void dfs(vector<vector<int>> g, vector<bool> vis, int vi, int v_pai)
+void dfs(vector<vector<int>> g, vector<bool> vis, int vi, int v_pai) 
 {
     vis[vi] = true;
     descoberta[vi] = low[vi] = tempo++;
     for (int v : g[vi])
     {
         if (v == v_pai) continue;
-
+/*
+O ALGORITMO EXECUTA UMA DFS, DETERMINANDO OS MENORES TEMPOS
+DE DESCOBERTA DE CADA VÉRTICE CONSIDERANDO OS NÓS ADJACENTES EXCETO O NÓ PAI
+*/
         if(!vis[v])
             {
                 pai[v] = vi;
@@ -56,6 +59,16 @@ void dfs(vector<vector<int>> g, vector<bool> vis, int vi, int v_pai)
 
 bool serPonte(int v, int u)
 {
+    /*
+    SE O LOW DE UM DOS VÉRTICES É MENOR QUE A DESCOBERTA DO OUTRO,
+    ISSO QUER DIZER QUE ESTE VÉRTICE QUE TEM TEMPO MENOR PODE SER
+    ACESSADO ANTES E AINDA ALCANÇAR O OUTRO, LOGO NÃO É UMA ARESTA DE CORTE
+    OU SEJA, PARA SER ARESTA DE CORTE, O VÉRTICE U PRECISA TER O SEU MENOR TEMPO DE
+    DESCOBERTA COMO MAIOR QUE O TEMPO DE DESCOBERTA DO VÉRTICE V, QUANDO
+    V É PAI DE U (ARESTA V-U), ISSO PORQUE RESULTARIA EM DIZER QUE O VÉRTICE U
+    NÃO PODERIA SER ALCANÇADO ANTES DO VÉRTICE V, IMPLICANDO EM UMA ARESTA
+    DE CORTE
+    */
     if (pai[u] == v)
     {
         return (low[u] > descoberta[v]);
