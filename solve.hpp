@@ -190,4 +190,53 @@ void emparelhamentos(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, V
     }
 }
 
+vector<vector<Vertice*>> ciclos;
+vector<Vertice*> sequencia;
+Vertice* pai = nullptr;
+
+void dfs(Grafo *g, int v){
+    Vertice* Vertice = g->vertices[v];
+    for (auto& aresta : Vertice->arestas) {
+        if (pai == nullptr) pai = Vertice;
+        int w = aresta.destino->id;
+
+        if (Vertice->grau == 0) return;
+
+        sequencia.push_back(Vertice);
+        Vertice->remover_aresta(w);
+        g->vertices[w]->remover_aresta(Vertice->id);
+            
+
+        if (pai->id == w){
+            sequencia.push_back(pai);
+            ciclos.push_back(sequencia);
+            sequencia.clear();
+            // cout << "ciclo!" << endl;
+            pai = nullptr;
+        }
+
+        // cout << v+1 << " vai para " << w+1 << endl;
+        dfs(g, w);
+    }
+}
+
+vector<Vertice*> hierholzer(Grafo* g){
+    dfs(g, 0);
+
+    vector<Vertice*> euleriano;
+    for (auto i : ciclos){
+        if (euleriano.empty()){
+            euleriano.insert(euleriano.begin(), i.begin(), i.end());
+            continue;
+        }
+
+        auto it = find(euleriano.begin(), euleriano.end(), i[0]);
+        // if (it == euleriano.end()) continue;
+        euleriano.insert(it+1, i.begin()+1, i.end());
+    }
+
+    return euleriano;
+}
+
+
 #endif
