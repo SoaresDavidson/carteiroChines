@@ -128,7 +128,7 @@ vector<Vertice*> fleury(Grafo* g, map<Vertice*, bool>& vis, Vertice* vi, Vertice
 
 int main(){
     int v, a; cin >> v >> a;
-    Grafo g;
+    Grafo g(v);
     map<Vertice*, bool> visitados;
 
     map<Vertice*, Vertice*> pai;
@@ -136,11 +136,6 @@ int main(){
     map<Vertice*, int> low;
     int tempo = 0;
 
-    for(int i = 0; i < v; i++){
-        Vertice* a = new Vertice();
-        a -> id = i;
-        g.adicionar_vertice(a);
-    }
     for(int i = 0; i < a; i++){
         int v1, v2; cin >> v1 >> v2; v1--;v2--;
         g.vertices[v1]->adicionar_aresta(1 ,g.vertices[v2]);

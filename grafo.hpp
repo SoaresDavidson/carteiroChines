@@ -34,7 +34,7 @@ public:
     int id;
     vector<Aresta> arestas;
     int grau = 0;
-    Vertice() {}
+    Vertice(int _id) : id(_id) {};
     void aumentar_grau(){
         grau++;
     }
@@ -129,7 +129,24 @@ class Grafo {
 public:
     vector<Vertice*> vertices;
     int ordem = 0;
-    Grafo() {}
+
+    Vertice* operator[](int indice) {
+        if (indice < 0 || indice >= vertices.size()) {
+            throw std::out_of_range("Índice de vértice fora dos limites do grafo.");
+        }
+        return vertices[indice];
+    }
+
+     const Vertice* operator[](int indice) const {
+        if (indice < 0 || indice >= vertices.size()) {
+            throw std::out_of_range("Índice de vértice fora dos limites do grafo.");
+        }
+        return vertices[indice];
+    }
+
+    Grafo(int qtdVertices) {
+        criar_grafo(qtdVertices);
+    }
     
     ~Grafo() {
         for (Vertice* v : vertices) 
@@ -138,7 +155,6 @@ public:
         }
         vertices.clear();
     }
-
 
      /*
      * @brief Adiciona um novo vértice ao grafo.
@@ -154,7 +170,14 @@ public:
         ordem++;
     }
 
-
+    void criar_grafo(int qtd){
+        for(int i = 0; i < qtd; i++)
+        {
+            Vertice* a = new Vertice(i);
+            a -> id = i;
+            this->adicionar_vertice(a);
+        }
+    }
 
     /*
      * @brief Imprime uma representação textual do grafo.
@@ -170,6 +193,79 @@ public:
             }
             cout << endl;
         }
+    }
+
+
+    Grafo(const Grafo& outro) {
+        std::map<Vertice*, Vertice*> mapa_vertices_orig_para_novo; // Mapeia Vertice* original -> Vertice* novo
+
+        // 1. Criar e adicionar novos objetos Vertice à cópia
+        for (Vertice* v_original : outro.vertices) {
+            Vertice* v_novo = new Vertice(v_original->id); // Cria novo vértice com o mesmo ID
+            this->adicionar_vertice(v_novo);               // Adiciona-o ao novo grafo
+            mapa_vertices_orig_para_novo[v_original] = v_novo; // Armazena o mapeamento
+        }
+
+        // 2. Copiar as arestas e ajustar seus destinos para os novos vértices
+        for (Vertice* v_original : outro.vertices) {
+            Vertice* v_novo = mapa_vertices_orig_para_novo[v_original]; // Pega o novo vértice correspondente
+            v_novo->grau = v_original->grau; // Copia o grau (se não for calculado ao adicionar arestas)
+            
+            for (const Aresta& aresta_original : v_original->arestas) {
+                // Encontra o ponteiro para o novo vértice de destino correspondente
+                Vertice* destino_novo = mapa_vertices_orig_para_novo[aresta_original.destino];
+               
+                v_novo->arestas.push_back(Aresta(aresta_original.peso, destino_novo));
+                v_novo->grau++; // Se adicionar_aresta não atualiza o grau
+            }
+        }
+        this->ordem = outro.ordem; // Copia a ordem total
+    }
+
+    // --- Operador de Atribuição de Cópia (Deep Copy) ---
+    /*
+     * @brief Operador de atribuição de cópia para realizar uma cópia profunda.
+     *
+     * Permite que um objeto Grafo seja atribuído a outro (ex: `grafo2 = grafo1;`).
+     * Garante que o grafo de destino se torne uma cópia independente do grafo de origem,
+     * gerenciando corretamente a memória do grafo de destino existente.
+     *
+     * @param outro O objeto Grafo a ser copiado.
+     * @return Uma referência ao objeto Grafo atual (*this) após a atribuição.
+     */
+    Grafo& operator=(const Grafo& outro) {
+        if (this == &outro) { // Previne auto-atribuição (ex: `g = g;`)
+            return *this;
+        }
+
+        // 1. Libera a memória dos vértices existentes no grafo atual (para evitar vazamento)
+        for (Vertice* v : vertices) {
+            delete v;
+        }
+        vertices.clear();
+        this->ordem = 0; // Reinicia a ordem
+
+        // 2. Reutiliza a lógica do construtor de cópia para criar a cópia profunda
+        std::map<Vertice*, Vertice*> mapa_vertices_orig_para_novo;
+
+        for (Vertice* v_original : outro.vertices) {
+            Vertice* v_novo = new Vertice(v_original->id);
+            this->adicionar_vertice(v_novo);
+            mapa_vertices_orig_para_novo[v_original] = v_novo;
+        }
+
+        for (Vertice* v_original : outro.vertices) {
+            Vertice* v_novo = mapa_vertices_orig_para_novo[v_original];
+            v_novo->grau = v_original->grau; // Copia o grau
+            for (const Aresta& aresta_original : v_original->arestas) {
+                Vertice* destino_novo = mapa_vertices_orig_para_novo[aresta_original.destino];
+                // Recria a aresta no novo vértice
+                v_novo->arestas.push_back(Aresta(aresta_original.peso, destino_novo));
+                v_novo->grau++; // Se adicionar_aresta não é usado ou não atualiza grau
+            }
+        }
+        this->ordem = outro.ordem;
+        return *this; // Retorna referência para permitir encadeamento (a = b = c;)
     }
 };
 #endif

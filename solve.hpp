@@ -25,14 +25,7 @@ using namespace std;
  * @return Um objeto Grafo que representa o grafo aleatoriamente gerado.
  */
 Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
-    Grafo g;
-
-    for(int i = 0; i < qtdVertices; i++)
-    {
-        Vertice* v = new Vertice();
-        v-> id = i;
-        g.adicionar_vertice(v);
-    }
+    Grafo g(qtdVertices);
 
     if (qtdVertices <= 1) return g;
 
@@ -312,5 +305,162 @@ vector<Vertice*> hierholzer(Grafo* g)
     return euleriano;
 }
 
+void Tarjan_DFS(Grafo* g, map<Vertice*, bool>& vis, Vertice* vi, Vertice* v_pai, int tempo, map<Vertice*, Vertice*> pai, map<Vertice*, int> descoberta, map<Vertice*, int> low)
+{
+    vis[vi] = true;
+    descoberta[vi] = low[vi] = tempo++;
+
+    for (Aresta v : vi->arestas) {
+        if (v.destino == v_pai) continue;
+
+        if(!vis[v.destino]) {
+            pai[v.destino] = vi;
+            Tarjan_DFS(g, vis, v.destino, vi, tempo, pai, descoberta, low);
+            low[vi] = min(low[vi], low[v.destino]);
+        }
+        else {
+            low[vi] = min(low[vi], descoberta[v.destino]);
+        }
+    }
+}
+
+
+bool serPonte(Vertice* v, Vertice* u, map<Vertice*, Vertice*> pai, map<Vertice*, int> descoberta, map<Vertice*, int> low)
+{
+    /*
+    SE O LOW DE UM DOS VÉRTICES É MENOR QUE A DESCOBERTA DO OUTRO,
+    ISSO QUER DIZER QUE ESTE VÉRTICE QUE TEM TEMPO MENOR PODE SER
+    ACESSADO ANTES E AINDA ALCANÇAR O OUTRO, LOGO NÃO É UMA ARESTA DE CORTE
+    OU SEJA, PARA SER ARESTA DE CORTE, O VÉRTICE U PRECISA TER O SEU MENOR TEMPO DE
+    DESCOBERTA COMO MAIOR QUE O TEMPO DE DESCOBERTA DO VÉRTICE V, QUANDO
+    V É PAI DE U (ARESTA V-U), ISSO PORQUE RESULTARIA EM DIZER QUE O VÉRTICE U
+    NÃO PODERIA SER ALCANÇADO ANTES DO VÉRTICE V, IMPLICANDO EM UMA ARESTA
+    DE CORTE
+    */
+    if (pai[u] == v)
+    {
+        return (low[u] > descoberta[v]);
+    }
+    else if (pai[v] == u)
+    {
+        return (low[v] > descoberta[u]);
+    }
+    return false;
+}
+
+
+
+
+/*
+ * @brief Implementa uma variação do Algoritmo de Fleury para encontrar um Circuito/Caminho Euleriano.
+ *
+ * O Algoritmo de Fleury busca um caminho ou circuito que visita cada aresta de um grafo
+ * exatamente uma vez. Esta função utiliza informações de pontes (arestas de corte)
+ * obtidas por uma execução prévia do algoritmo de Tarjan (ou similar DFS) para garantir
+ * que o caminho/circuito permaneça conexo enquanto é construído.
+ *
+ * Pré-condições:
+ * - O grafo 'g' deve ser conectado (excluindo vértices isolados).
+ * - Para um Circuito Euleriano, todos os vértices devem ter grau par.
+ * - Para um Caminho Euleriano, exatamente dois vértices devem ter grau ímpar.
+ * - As funções 'Tarjan_DFS' e 'serPonte' devem estar corretamente implementadas
+ * e acessíveis, fornecendo os valores de 'pai', 'descoberta' e 'low' necessários
+ * para a detecção de pontes.
+ * - A função 'Vertice::isEmpty()' deve retornar true se o vértice não tiver mais arestas.
+ *
+ * @param g Ponteiro para o objeto Grafo a ser analisado.
+ * @param vis Um mapa que rastreia os vértices visitados pela Tarjan_DFS.
+ * @param vi O vértice inicial para a construção do circuito/caminho.
+ * @param v_pai O vértice pai de 'vi' na árvore DFS inicial (geralmente nullptr na primeira chamada).
+ * @param pai Um mapa que armazena o pai de cada vértice na árvore DFS.
+ * @param tempo Um contador de tempo usado na Tarjan_DFS para stamps de descoberta.
+ * @param descoberta Um mapa que armazena o tempo de descoberta de cada vértice.
+ * @param low Um mapa que armazena o valor 'low' de cada vértice (menor tempo de descoberta alcançável).
+ * @return Um 'std::vector' de ponteiros para Vertice que representa a sequência ordenada
+ * dos vértices no circuito/caminho Euleriano encontrado.
+ */
+vector<Vertice*> fleury(Grafo* g,Vertice* vi)
+{    map<Vertice*, Vertice*> pai;
+     int tempo = 0;
+     map<Vertice*, bool> vis;
+     map<Vertice*, int> descoberta;
+     map<Vertice*, int> low;
+     Vertice* v_pai; 
+    Tarjan_DFS(g, vis, vi, v_pai, tempo, pai, descoberta, low);
+
+    stack<Vertice*> pilha;
+    vector<Vertice*> ciclo;
+    pilha.push(vi);
+
+    while (!pilha.empty()) {
+        Vertice* u = pilha.top();
+
+        if (u->isEmpty()) {
+            ciclo.push_back(u);
+            pilha.pop();
+        } else {
+            // Encontra o primeiro vizinho
+            Vertice* v = u->arestas[0].destino;
+
+            // Verifica se a aresta é ponte
+            bool isBridge = serPonte(u, v, pai, descoberta, low);
+
+            // Se não é ponte, remove a aresta
+            if (!isBridge || u->arestas.size() == 1)
+            {
+                // Remove aresta u-v
+                u->remover_aresta(v->id);
+                v->remover_aresta(u->id);
+
+                pilha.push(v);
+            }
+            else
+                {
+                // Se é ponte e há outras opções, procura outra aresta
+                bool found = false;
+                for (size_t i = 1; i < u->arestas.size(); i++)
+                    {
+                    v = u->arestas[i].destino;
+                    if (!serPonte(u, v, pai, descoberta, low))
+                        {
+                        // Remove aresta u-v
+                        u->remover_aresta(v->id);
+                        v->remover_aresta(u->id);
+
+                        pilha.push(v);
+                        found = true;
+                        break;
+                        }
+                    }
+
+                // Se todas são pontes, remove a primeira
+                if (!found)
+                    {
+                    v = u->arestas[0].destino;
+                    u->remover_aresta(v->id);
+                    v->remover_aresta(u->id);
+
+                    pilha.push(v);
+                    }
+                }
+        }
+    }
+
+    // Imprime o ciclo euleriano
+    // cout << "Ciclo Euleriano encontrado: ";
+    // for (Vertice* v : ciclo) {
+    //     cout << v->id + 1 << " "; // +1 para ajustar a numeração (começa em 1)
+    // }
+    // cout << endl;
+
+    return ciclo;
+}
+
+void imprimir_caminho(vector<Vertice*> caminho){
+    for(auto vertice : caminho){
+        cout << vertice->id << "  ";
+    }
+    cout << endl;
+}
 
 #endif
