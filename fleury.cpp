@@ -53,7 +53,7 @@ bool serPonte(Vertice* v, Vertice* u, map<Vertice*, Vertice*> pai, map<Vertice*,
 }
 
 
-void fleury(Grafo* g, map<Vertice*, bool>& vis, Vertice* vi, Vertice* v_pai, map<Vertice*, Vertice*> pai, int tempo, map<Vertice*, int> descoberta, map<Vertice*, int> low)
+vector<Vertice*> fleury(Grafo* g, map<Vertice*, bool>& vis, Vertice* vi, Vertice* v_pai, map<Vertice*, Vertice*> pai, int tempo, map<Vertice*, int> descoberta, map<Vertice*, int> low)
 {
     Tarjan_DFS(g, vis, vi, v_pai, tempo, pai, descoberta, low);
 
@@ -116,11 +116,13 @@ void fleury(Grafo* g, map<Vertice*, bool>& vis, Vertice* vi, Vertice* v_pai, map
     }
 
     // Imprime o ciclo euleriano
-    cout << "Ciclo Euleriano encontrado: ";
-    for (Vertice* v : ciclo) {
-        cout << v->id + 1 << " "; // +1 para ajustar a numeração (começa em 1)
-    }
-    cout << endl;
+    // cout << "Ciclo Euleriano encontrado: ";
+    // for (Vertice* v : ciclo) {
+    //     cout << v->id + 1 << " "; // +1 para ajustar a numeração (começa em 1)
+    // }
+    // cout << endl;
+
+    return ciclo;
 }
 
 
@@ -134,6 +136,11 @@ int main(){
     map<Vertice*, int> low;
     int tempo = 0;
 
+    for(int i = 0; i < v; i++){
+        Vertice* a = new Vertice();
+        a -> id = i;
+        g.adicionar_vertice(a);
+    }
     for(int i = 0; i < a; i++){
         int v1, v2; cin >> v1 >> v2; v1--;v2--;
         g.vertices[v1]->adicionar_aresta(1 ,g.vertices[v2]);
