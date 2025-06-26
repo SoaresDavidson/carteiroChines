@@ -27,37 +27,42 @@ using namespace std;
 Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
     Grafo g;
 
-    for(int i = 0; i < qtdVertices; i++){
+    for(int i = 0; i < qtdVertices; i++)
+    {
         Vertice* v = new Vertice();
         v-> id = i;
         g.adicionar_vertice(v);
     }
 
-    if (qtdVertices <= 1) {
-        return g;
-    }
+    if (qtdVertices <= 1) return g;
+
     mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
    
     uniform_int_distribution<ll> dist_peso(1, pesoMax - 1); 
     uniform_int_distribution<int> dist_vertice(0, qtdVertices - 1); 
 
-    for(int i = 0; i < qtdVertices; ++i){
+    for(int i = 0; i < qtdVertices; ++i)
+    {
+
         Vertice* verticeOrigem = g.vertices[i];
-        int arestasAdicionadasParaEsteVertice = 0;
-        while (arestasAdicionadasParaEsteVertice < grauMax && arestasAdicionadasParaEsteVertice < qtdVertices - 1) {
+
+        while ((verticeOrigem->grau < grauMax) || verticeOrigem->isEmpty()) 
+        {
+
             int indiceDestino = dist_vertice(rng);
             Vertice* verticeDestino = g.vertices[indiceDestino];
 
-            if (verticeOrigem == verticeDestino) {
-                continue;
-            }
-            if(verticeOrigem->grau >= grauMax or verticeDestino->grau >= grauMax) break;
+            if(verticeOrigem->grau >= grauMax or (verticeOrigem->isEmpty()==false and verticeDestino->grau >= grauMax)) break;
+
+            if (verticeOrigem == verticeDestino ) continue;
+
             ll peso = dist_peso(rng); 
             verticeOrigem->adicionar_aresta(peso, verticeDestino);
             verticeDestino->adicionar_aresta(peso, verticeOrigem);
-
-            arestasAdicionadasParaEsteVertice++;
         }
+
+        // cout << "Ordem do vertice " << verticeOrigem->id << ": " << verticeOrigem->grau << endl;
+
     }
 
     return g;
@@ -80,39 +85,49 @@ Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
  * - O `second` (std::vector<Aresta>) é o caminho como uma sequência de arestas
  * do vértice inicial ao destino. Retorna um vetor vazio se não houver caminho.
  */
-pair<ll,vector<Aresta>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino){
+pair<ll,vector<Aresta>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino)
+{
     ll INF = LLONG_MAX;
     priority_queue<pair<ll,Vertice*>,vector<pair<ll,Vertice*>>,greater<pair<ll,Vertice*>>>pq;//modifica a estrutura para ordenar do menor para o maior
     pq.push({0,inicio});
     map<Vertice*,ll>caminho;
 
     map<Vertice*,pair<Vertice*,Aresta>>caminho_final;
-    for(auto v : g->vertices){
+
+    for(auto v : g->vertices)
+    {
         caminho[v] = INF;
     }
+
     caminho[inicio] = 0;
-    while(!pq.empty()){
+    while(!pq.empty())
+    {
 
         auto [distancia, vertice_atual] = pq.top();
         pq.pop();
 
         if(distancia < caminho[vertice_atual]) continue;//caso a distancia já encontrada para o vertice_atual já seja a menor continua
 
-            for(auto aresta : vertice_atual->arestas){
-                if(caminho[aresta.destino] > caminho[vertice_atual] + aresta.peso){
+            for(auto aresta : vertice_atual->arestas)
+            {
+                if(caminho[aresta.destino] > caminho[vertice_atual] + aresta.peso)
+                {
                     caminho[aresta.destino] = caminho[vertice_atual] + aresta.peso;
                     pq.push({caminho[aresta.destino],aresta.destino});
                     caminho_final[aresta.destino] = {vertice_atual,aresta};
                 }
+
             }
 
         if(vertice_atual==destino) break; //quando o vertice destino for rotulado encerra o algoritmo e retorna
     }
+
     if(caminho[destino]==INF) return{-1,vector<Aresta>{}}; //não existe caminho entre esses vertices
     vector<Aresta>path;
     Vertice* verticeAtual = destino;
     
-    while(verticeAtual!=nullptr and verticeAtual!=inicio){
+    while(verticeAtual!=nullptr and verticeAtual!=inicio)
+    {
 
         Aresta aresta_atual = caminho_final[verticeAtual].s;
         verticeAtual = caminho_final[verticeAtual].f;
@@ -137,17 +152,33 @@ pair<ll,vector<Aresta>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino){
  * @param inicio Ponteiro para o vértice de onde as arestas serão adicionadas.
  * @param arestas Um `std::vector` de objetos Aresta a serem adicionados ao vértice `inicio`.
  */
-void duplicar_arestas(Vertice* inicio, vector<Aresta> arestas){
+void duplicar_arestas(Vertice* inicio, vector<Aresta> arestas)
+{
 
     inicio->adicionar_aresta(arestas[0].peso,arestas[0].destino);
     arestas[0].destino->adicionar_aresta(arestas[0].peso,inicio);
 
-        for(int i = 0;i < arestas.size()-1;i++){
+        for(int i = 0;i < arestas.size()-1;i++)
+        {
         arestas[i].destino -> adicionar_aresta(arestas[i+1].peso,arestas[i+1].destino);
         arestas[i+1].destino -> adicionar_aresta(arestas[i+1].peso,arestas[i].destino);
-    }
+        }
 }
 
+
+/*
+ * @brief Encontra vértices com grau ímpar em um grafo.
+ *
+ * Esta função percorre todos os vértices de um grafo fornecido e identifica aqueles
+ * cujo grau (número de conexões) é um número ímpar. Ela retorna uma coleção
+ * desses vértices.
+ *
+ * @param grafo Ponteiro para o objeto Grafo a ser analisado. Espera-se que o Grafo
+ * contenha uma coleção de ponteiros para Vertice, e que cada Vertice
+ * possua um membro 'grau' que represente seu número de arestas.
+ * @return Um 'std::vector' de ponteiros para Vertice, contendo apenas os vértices
+ * que possuem grau ímpar no grafo.
+ */
 vector<Vertice*> impares(Grafo* grafo)
 {
     vector<Vertice*> retorno;
@@ -162,6 +193,23 @@ vector<Vertice*> impares(Grafo* grafo)
     return retorno;
 }
 
+
+
+/*
+ * @brief Gera todos os emparelhamentos possíveis a partir de um conjunto de vértices.
+ *
+ * Esta função recursiva explora todas as combinações de emparelhamento entre os vértices restantes.
+ * Um emparelhamento é uma coleção de pares de vértices, onde cada vértice aparece em no máximo um par.
+ * A função constrói e armazena todos esses emparelhamentos completos no vetor 'resultado'.
+ *
+ * @param restantes Ponteiro para um vetor de Vertice* contendo os vértices ainda não emparelhados
+ * na chamada recursiva atual.
+ * @param resultado Ponteiro para um vetor de vetores de pares de Vertice*. Este parâmetro acumula
+ * todos os emparelhamentos completos encontrados.
+ * @param emparelhamentoAtual Ponteiro para um vetor de pares de Vertice*. Representa o emparelhamento
+ * que está sendo construído na iteração atual da recursão. É inicializado
+ * como um novo vetor vazio por padrão na primeira chamada.
+ */
 void emparelhamentos(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, Vertice*>>>* resultado, vector<pair<Vertice*, Vertice*>>* emparelhamentoAtual = new vector<pair<Vertice*, Vertice*>>())
 {
     //Recebe um vetor de vetores de pares de vértices e o preenche com cada emparelhamento possível
@@ -197,7 +245,8 @@ Vertice* pai = nullptr;
 
 void dfs(Grafo *g, int v){
     Vertice* Vertice = g->vertices[v];
-    for (auto& aresta : Vertice->arestas) {
+    for (auto& aresta : Vertice->arestas) 
+    {
         if (pai == nullptr) pai = Vertice;
         int w = aresta.destino->id;
 
@@ -208,7 +257,8 @@ void dfs(Grafo *g, int v){
         g->vertices[w]->remover_aresta(Vertice->id);
             
 
-        if (pai->id == w){
+        if (pai->id == w)
+        {
             sequencia.push_back(pai);
             ciclos.push_back(sequencia);
             sequencia.clear();
@@ -221,12 +271,35 @@ void dfs(Grafo *g, int v){
     }
 }
 
-vector<Vertice*> hierholzer(Grafo* g){
+
+
+/*
+ * @brief Constrói um circuito Euleriano em um grafo utilizando uma abordagem similar ao algoritmo de Hierholzer.
+ *
+ * Esta função primeiro realiza uma Busca em Profundidade (DFS) no grafo para identificar ciclos.
+ * Em seguida, ela "costura" esses ciclos encontrados para formar um único circuito Euleriano
+ * que percorre todas as arestas do grafo exatamente uma vez, retornando ao ponto de partida.
+ *
+ * Pré-condição:
+ * - O grafo 'g' deve ser conexo (excluindo vértices isolados).
+ * - Todos os vértices do grafo 'g' devem ter grau par para que um circuito Euleriano exista.
+ * - A função 'dfs' e a variável global/membro 'ciclos' devem estar corretamente implementadas
+ * e acessíveis, onde 'ciclos' é preenchido com os ciclos encontrados pela DFS.
+ *
+ * @param g Ponteiro para o objeto Grafo no qual o circuito Euleriano será encontrado.
+ * @return Um 'std::vector' de ponteiros para Vertice que representa a sequência ordenada
+ * de vértices no circuito Euleriano. Retorna um vetor vazio se nenhum circuito for encontrado
+ * ou se as pré-condições não forem satisfeitas.
+ */
+vector<Vertice*> hierholzer(Grafo* g)
+{
     dfs(g, 0);
 
     vector<Vertice*> euleriano;
-    for (auto i : ciclos){
-        if (euleriano.empty()){
+    for (auto i : ciclos)
+    {
+        if (euleriano.empty())
+        {
             euleriano.insert(euleriano.begin(), i.begin(), i.end());
             continue;
         }
