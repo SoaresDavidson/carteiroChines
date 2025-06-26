@@ -1,39 +1,35 @@
 #include <iostream>
 #include <bits/stdc++.h>
-
+#include "grafo.hpp"
 using namespace std;
 //push_back = append, .begin = iterator que aponta pro primeiro
-vector<int> pai;
-vector<int> descoberta;
-vector<int> low;
-int tempo = 0;
 
 /*
-O ALGORITMO EXECUTA UMA DFS, DETERMINANDO OS MENORES TEMPOS
+O ALGORITMO EXECUTA UMA Tarjan_DFS, DETERMINANDO OS MENORES TEMPOS
 DE DESCOBERTA DE CADA VÉRTICE CONSIDERANDO OS NÓS ADJACENTES EXCETO O NÓ PAI
 */
 
-void dfs(vector<vector<int>>& g, vector<bool>& vis, int vi, int v_pai) 
+void Tarjan_DFS(Grafo* g, map<Vertice*, bool>& vis, Vertice* vi, Vertice* v_pai, int tempo, map<Vertice*, Vertice*> pai, map<Vertice*, int> descoberta, map<Vertice*, int> low)
 {
     vis[vi] = true;
     descoberta[vi] = low[vi] = tempo++;
 
-    for (int v : g[vi]) {
-        if (v == v_pai) continue;
+    for (Aresta v : vi->arestas) {
+        if (v.destino == v_pai) continue;
 
-        if(!vis[v]) {
-            pai[v] = vi;
-            dfs(g, vis, v, vi);
-            low[vi] = min(low[vi], low[v]);
+        if(!vis[v.destino]) {
+            pai[v.destino] = vi;
+            Tarjan_DFS(g, vis, v.destino, vi, tempo, pai, descoberta, low);
+            low[vi] = min(low[vi], low[v.destino]);
         }
         else {
-            low[vi] = min(low[vi], descoberta[v]);
+            low[vi] = min(low[vi], descoberta[v.destino]);
         }
     }
 }
 
 
-bool serPonte(int v, int u)
+bool serPonte(Vertice* v, Vertice* u, map<Vertice*, Vertice*> pai, map<Vertice*, int> descoberta, map<Vertice*, int> low)
 {
     /*
     SE O LOW DE UM DOS VÉRTICES É MENOR QUE A DESCOBERTA DO OUTRO,
@@ -57,31 +53,33 @@ bool serPonte(int v, int u)
 }
 
 
-void fleury(vector<vector<int>> g, int vi)
+void fleury(Grafo* g, map<Vertice*, bool>& vis, Vertice* vi, Vertice* v_pai, map<Vertice*, Vertice*> pai, int tempo, map<Vertice*, int> descoberta, map<Vertice*, int> low)
 {
-    stack<int> pilha;
-    vector<int> ciclo;
+    Tarjan_DFS(g, vis, vi, v_pai, tempo, pai, descoberta, low);
+
+    stack<Vertice*> pilha;
+    vector<Vertice*> ciclo;
     pilha.push(vi);
 
     while (!pilha.empty()) {
-        int u = pilha.top();
+        Vertice* u = pilha.top();
 
-        if (g[u].empty()) {
+        if (u->isEmpty()) {
             ciclo.push_back(u);
             pilha.pop();
         } else {
             // Encontra o primeiro vizinho
-            int v = g[u][0];
+            Vertice* v = u->arestas[0].destino;
 
             // Verifica se a aresta é ponte
-            bool isBridge = serPonte(u, v);
+            bool isBridge = serPonte(u, v, pai, descoberta, low);
 
             // Se não é ponte, remove a aresta
-            if (!isBridge || g[u].size() == 1) 
+            if (!isBridge || u->arestas.size() == 1)
             {
                 // Remove aresta u-v
-                g[u].erase(find(g[u].begin(), g[u].end(), v));
-                g[v].erase(find(g[v].begin(), g[v].end(), u));
+                u->remover_aresta(v->id);
+                v->remover_aresta(u->id);
 
                 pilha.push(v);
             }
@@ -89,14 +87,14 @@ void fleury(vector<vector<int>> g, int vi)
                 {
                 // Se é ponte e há outras opções, procura outra aresta
                 bool found = false;
-                for (size_t i = 1; i < g[u].size(); i++) 
+                for (size_t i = 1; i < u->arestas.size(); i++)
                     {
-                    v = g[u][i];
-                    if (!serPonte(u, v)) 
+                    v = u->arestas[i].destino;
+                    if (!serPonte(u, v, pai, descoberta, low))
                         {
                         // Remove aresta u-v
-                        g[u].erase(g[u].begin() + i);
-                        g[v].erase(find(g[v].begin(), g[v].end(), u));
+                        u->remover_aresta(v->id);
+                        v->remover_aresta(u->id);
 
                         pilha.push(v);
                         found = true;
@@ -105,11 +103,11 @@ void fleury(vector<vector<int>> g, int vi)
                     }
 
                 // Se todas são pontes, remove a primeira
-                if (!found) 
+                if (!found)
                     {
-                    v = g[u][0];
-                    g[u].erase(g[u].begin());
-                    g[v].erase(find(g[v].begin(), g[v].end(), u));
+                    v = u->arestas[0].destino;
+                    u->remover_aresta(v->id);
+                    v->remover_aresta(u->id);
 
                     pilha.push(v);
                     }
@@ -119,8 +117,8 @@ void fleury(vector<vector<int>> g, int vi)
 
     // Imprime o ciclo euleriano
     cout << "Ciclo Euleriano encontrado: ";
-    for (int v : ciclo) {
-        cout << v + 1 << " "; // +1 para ajustar a numeração (começa em 1)
+    for (Vertice* v : ciclo) {
+        cout << v->id + 1 << " "; // +1 para ajustar a numeração (começa em 1)
     }
     cout << endl;
 }
@@ -128,19 +126,19 @@ void fleury(vector<vector<int>> g, int vi)
 
 int main(){
     int v, a; cin >> v >> a;
-    vector<vector<int>> g(v);
-    vector<bool> visitados(v, false);
+    Grafo g;
+    map<Vertice*, bool> visitados;
 
-    pai.resize(v, -1);
-    descoberta.resize(v, -1);
-    low.resize(v, -1);
+    map<Vertice*, Vertice*> pai;
+    map<Vertice*, int> descoberta;
+    map<Vertice*, int> low;
+    int tempo = 0;
 
     for(int i = 0; i < a; i++){
         int v1, v2; cin >> v1 >> v2; v1--;v2--;
-        g[v1].push_back(v2);
-        g[v2].push_back(v1);
+        g.vertices[v1]->adicionar_aresta(1 ,g.vertices[v2]);
+        g.vertices[v2]->adicionar_aresta(1 ,g.vertices[v1]);
     }
 
-    dfs(g, visitados, 0, -1);
-    fleury(g, 0);
+    fleury(&g, visitados, g.vertices[0], nullptr, pai, tempo, descoberta, low);
 }
