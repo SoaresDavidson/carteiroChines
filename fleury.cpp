@@ -116,11 +116,11 @@ vector<Vertice*> fleury(Grafo* g, map<Vertice*, bool>& vis, Vertice* vi, Vertice
     }
 
     // Imprime o ciclo euleriano
-    // cout << "Ciclo Euleriano encontrado: ";
-    // for (Vertice* v : ciclo) {
-    //     cout << v->id + 1 << " "; // +1 para ajustar a numeração (começa em 1)
-    // }
-    // cout << endl;
+    cout << "Ciclo Euleriano encontrado: ";
+    for (Vertice* v : ciclo) {
+        cout << v->id + 1 << " "; // +1 para ajustar a numeração (começa em 1)
+    }
+    cout << endl;
 
     return ciclo;
 }
@@ -137,9 +137,10 @@ int main(){
     int tempo = 0;
 
     for(int i = 0; i < a; i++){
-        int v1, v2; cin >> v1 >> v2; v1--;v2--;
-        g.vertices[v1]->adicionar_aresta(1 ,g.vertices[v2]);
-        g.vertices[v2]->adicionar_aresta(1 ,g.vertices[v1]);
+        ll p;
+        int v1, v2; cin >> v1 >> v2 >> p; 
+        g.vertices[v1]->adicionar_aresta(p,g.vertices[v2],i);
+
     }
 
     fleury(&g, visitados, g.vertices[0], nullptr, pai, tempo, descoberta, low);

@@ -3,6 +3,7 @@
 #define ll long long 
 #include <algorithm>
 #include <vector>
+#include <fstream>
 using namespace std;
 class Vertice;
 
@@ -18,8 +19,9 @@ class Aresta {
 public:
     ll peso;
     Vertice* destino; 
-    Aresta(ll p, Vertice* d) : peso(p), destino(d) {}
-    Aresta() : peso(0), destino(nullptr) {}
+    int id = 0;
+    Aresta(ll p, Vertice* d, int _id) : peso(p), destino(d), id(_id) {}
+    Aresta() : peso(0), destino(nullptr), id(-1){}
 };
 
 
@@ -38,7 +40,14 @@ public:
     void aumentar_grau(){
         grau++;
     }
-
+    Aresta findArestaById(int idProcurado) {
+        for (auto aresta : arestas) {           // Percorre todas as arestas
+            if (aresta.id == idProcurado) {      // Se encontrar o ID
+                return aresta;                  // Retorna a aresta
+            }
+        }
+        return {};  // Se não encontrar, retorna nullptr
+    }
     /*
      * @brief Adiciona uma nova aresta a partir deste vértice.
      *
@@ -48,9 +57,9 @@ public:
      * @param peso O peso associado à aresta.
      * @param destino Um ponteiro para o vértice de destino da aresta.
      */
-    void adicionar_aresta(ll peso, Vertice* destino)
+    void adicionar_aresta(ll peso, Vertice* destino, int id)
     {
-        Aresta aresta(peso, destino);
+        Aresta aresta(peso, destino,id);
         arestas.push_back(aresta);
         aumentar_grau();
     }
@@ -178,6 +187,30 @@ public:
             this->adicionar_vertice(a);
         }
     }
+        bool Conexo() {
+        if (ordem == 0) return true; 
+
+        std::unordered_set<int> visitados;
+        std::stack<int> pilha;
+
+
+        pilha.push(0);
+        visitados.insert(0);
+
+        while (!pilha.empty()) {
+            int atual = pilha.top();
+            pilha.pop();
+
+            for (Aresta aresta : vertices[atual]->arestas) {
+                Vertice* vizinho = aresta.destino;
+                if (visitados.find(vizinho->id) == visitados.end()) {
+                    visitados.insert(vizinho->id);
+                    pilha.push(vizinho->id);
+                }
+            }
+        }
+        return (visitados.size() == static_cast<size_t>(ordem));
+    }
 
     /*
      * @brief Imprime uma representação textual do grafo.
@@ -194,78 +227,46 @@ public:
             cout << endl;
         }
     }
-
-
-    Grafo(const Grafo& outro) {
-        std::map<Vertice*, Vertice*> mapa_vertices_orig_para_novo; // Mapeia Vertice* original -> Vertice* novo
-
-        // 1. Criar e adicionar novos objetos Vertice à cópia
-        for (Vertice* v_original : outro.vertices) {
-            Vertice* v_novo = new Vertice(v_original->id); // Cria novo vértice com o mesmo ID
-            this->adicionar_vertice(v_novo);               // Adiciona-o ao novo grafo
-            mapa_vertices_orig_para_novo[v_original] = v_novo; // Armazena o mapeamento
-        }
-
-        // 2. Copiar as arestas e ajustar seus destinos para os novos vértices
-        for (Vertice* v_original : outro.vertices) {
-            Vertice* v_novo = mapa_vertices_orig_para_novo[v_original]; // Pega o novo vértice correspondente
-            v_novo->grau = v_original->grau; // Copia o grau (se não for calculado ao adicionar arestas)
-            
-            for (const Aresta& aresta_original : v_original->arestas) {
-                // Encontra o ponteiro para o novo vértice de destino correspondente
-                Vertice* destino_novo = mapa_vertices_orig_para_novo[aresta_original.destino];
-               
-                v_novo->arestas.push_back(Aresta(aresta_original.peso, destino_novo));
-                v_novo->grau++; // Se adicionar_aresta não atualiza o grau
-            }
-        }
-        this->ordem = outro.ordem; // Copia a ordem total
+    int qtdArestas(){
+        int qtd = 0;
+         for(auto vertice : vertices){
+            qtd+=vertice->arestas.size();
+         }
+         return qtd;
     }
 
-    // --- Operador de Atribuição de Cópia (Deep Copy) ---
-    /*
-     * @brief Operador de atribuição de cópia para realizar uma cópia profunda.
-     *
-     * Permite que um objeto Grafo seja atribuído a outro (ex: `grafo2 = grafo1;`).
-     * Garante que o grafo de destino se torne uma cópia independente do grafo de origem,
-     * gerenciando corretamente a memória do grafo de destino existente.
-     *
-     * @param outro O objeto Grafo a ser copiado.
-     * @return Uma referência ao objeto Grafo atual (*this) após a atribuição.
-     */
-    Grafo& operator=(const Grafo& outro) {
-        if (this == &outro) { // Previne auto-atribuição (ex: `g = g;`)
-            return *this;
+    void salvar_grafo(const string& nome_arquivo) {
+    ofstream arquivo(nome_arquivo, ios::app);
+
+    if (!arquivo.is_open()) {
+        cerr << "Erro ao abrir o arquivo para escrita!" << endl;
+        return;
+    }
+
+    arquivo << this->ordem << " " << qtdArestas() << endl;
+
+    for (auto vertice : this->vertices) {
+        for (auto aresta : vertice->arestas) {
+            arquivo << vertice->id << " " 
+                    << aresta.destino->id << " " 
+                    << aresta.peso << endl;
         }
+    }
+    arquivo << endl;
+    arquivo.close();
+}
 
-        // 1. Libera a memória dos vértices existentes no grafo atual (para evitar vazamento)
-        for (Vertice* v : vertices) {
-            delete v;
-        }
-        vertices.clear();
-        this->ordem = 0; // Reinicia a ordem
-
-        // 2. Reutiliza a lógica do construtor de cópia para criar a cópia profunda
-        std::map<Vertice*, Vertice*> mapa_vertices_orig_para_novo;
-
-        for (Vertice* v_original : outro.vertices) {
-            Vertice* v_novo = new Vertice(v_original->id);
-            this->adicionar_vertice(v_novo);
-            mapa_vertices_orig_para_novo[v_original] = v_novo;
-        }
-
-        for (Vertice* v_original : outro.vertices) {
-            Vertice* v_novo = mapa_vertices_orig_para_novo[v_original];
-            v_novo->grau = v_original->grau; // Copia o grau
-            for (const Aresta& aresta_original : v_original->arestas) {
-                Vertice* destino_novo = mapa_vertices_orig_para_novo[aresta_original.destino];
-                // Recria a aresta no novo vértice
-                v_novo->arestas.push_back(Aresta(aresta_original.peso, destino_novo));
-                v_novo->grau++; // Se adicionar_aresta não é usado ou não atualiza grau
+    ll calcular_peso(){
+        ll sum = 0;
+        for(auto vertice : this->vertices)
+        {
+            for(auto arestas : vertice->arestas)
+            {
+                sum+=arestas.peso;
             }
         }
-        this->ordem = outro.ordem;
-        return *this; // Retorna referência para permitir encadeamento (a = b = c;)
+        return sum/2;
     }
+
 };
 #endif

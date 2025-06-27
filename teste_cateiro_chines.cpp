@@ -14,32 +14,35 @@ int main(){
 
     // cout << "Informe a quantidade de vertices e a de Arestas" <<endl;
     // cin >> qtdVertices >> qtdArestas;
-    // Grafo grafo;
+    // Grafo grafo(qtdVertices);
 
-    // //adicionando os N vertices no grafo
-    // for(int i=0;i <qtdVertices;i++){
-    //     Vertice* a = new Vertice();
-    //     a -> id = i;
-    //     grafo.adicionar_vertice(a);
-    // }
+    // // //adicionando os N vertices no grafo
+    // // for(int i=0;i <qtdVertices;i++){
+    // //     Vertice* a = new Vertice();
+    // //     a -> id = i;
+    // //     grafo.adicionar_vertice(a);
+    // // }
 
     // cout << "Insira: (vertice inicial vertice final peso) o primeiro vertice comeca no 0" << endl;
     // //recebendo as arestas e construindo o grafo
     // for(int i = 0;i<qtdArestas;i++){
     //     ll inicio,destino,peso; 
     //     cin >> inicio >> destino >> peso;
-    //     grafo.vertices[inicio]->adicionar_aresta(peso,grafo.vertices[destino]);
-    //     grafo.vertices[destino]->adicionar_aresta(peso,grafo.vertices[inicio]);
+    //     grafo.vertices[inicio]->adicionar_aresta(peso,grafo.vertices[destino],i);
     // }
-    int qtdVertices = 30;
-    // map<pair<int,int>,pair<ll,vector<Aresta>>>dp;
-    pair<ll,vector<Aresta>> dp[qtdVertices][qtdVertices];
+    int qtdVertices = 40;
+    // // map<pair<int,int>,pair<ll,vector<Aresta>>>dp;
+    pair<ll,vector<int>> dp[qtdVertices][qtdVertices];
     for(int i = 0;i < qtdVertices; i++)
     {
-        for(int j = 0; j < qtdVertices;j++) dp[i][j] = {-1,vector<Aresta>{}};
+        for(int j = 0; j < qtdVertices;j++) dp[i][j] = {-1,vector<int>{}};
     }
-
-    Grafo grafo = gerar_grafo_aleatorio(qtdVertices,120,6);
+    Grafo grafo = gerar_grafo_aleatorio(qtdVertices,12,6);
+    if(!grafo.Conexo())
+    {
+        cout << "Nao é Conexo essa porra" << endl;
+        return 0;
+    }
     cout << "Grafo original"<< endl;
     grafo.imprimir_grafo(); 
 
@@ -51,18 +54,18 @@ int main(){
         cout << "Nao da pra aplicar o carteiro chines" << endl;
         return 0;
     }
-
+    // grafo.salvar_grafo("grafos.txt");
     vector<vector<pair<Vertice*, Vertice*>>> emparelhamentos_gerados;
-
+    ll peso_inicio = grafo.calcular_peso();
     emparelhamentos(&vertices_impares,&emparelhamentos_gerados);
-
+    cout << "Peso do Grafo inicial: " << peso_inicio << endl;
     ll peso_total = LLONG_MAX;
-    vector<pair<Vertice*,vector<Aresta>>>dup;
+    vector<pair<Vertice*,vector<int>>>dup;
 
     for(auto emparelhamento : emparelhamentos_gerados)
     {
         ll soma_peso = 0;
-        vector<pair<Vertice*,vector<Aresta>>>duplicar;
+        vector<pair<Vertice*,vector<int>>>duplicar;
 
        for(auto [vertice_inicial,vertice_final] : emparelhamento)
        {
@@ -81,7 +84,7 @@ int main(){
             } else {
 
                 ll peso = dp[vertice_inicial->id][vertice_final->id].first;
-                vector<Aresta>arestas =dp[vertice_inicial->id][vertice_final->id].second;
+                vector<int>arestas =dp[vertice_inicial->id][vertice_final->id].second;
                 soma_peso+=peso;
                 duplicar.push_back({vertice_inicial,arestas});
 
@@ -103,16 +106,19 @@ int main(){
         duplicar_arestas(vertice_inicial, aresta);
     }
 
+    cout << "Peso arestas " << peso_total << "+" << peso_inicio << endl;
+    cout << "Peso calculado " << grafo.calcular_peso() << endl;
     cout << "Grafo final"<< endl;
+
+    // grafo.salvar_grafo("grafos.txt");
+
     grafo.imprimir_grafo();
-    Grafo grafo2 = grafo;
-    grafo2.imprimir_grafo();
+    // vector<Vertice*> caminho_hier = hierholzer(&grafo);
+    // cout << "caminho euleriano feito usando hierholzer: " << endl;
+    // imprimir_caminho(caminho_hier);
     vector<Vertice*> caminho_fleury = fleury(&grafo,grafo[0]);
     cout << "caminho euleriano feito usando fleury: " << endl;
     imprimir_caminho(caminho_fleury);
-    // vector<Vertice*> caminho_hier = hierholzer(&grafo2);
-    // cout << "caminho euleriano feito usando hierholzer: " << endl;
-    // imprimir_caminho(caminho_hier);
     
 }
 //grafo que eu mandei no grupo 

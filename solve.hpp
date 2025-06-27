@@ -33,7 +33,7 @@ Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
    
     uniform_int_distribution<ll> dist_peso(1, pesoMax - 1); 
     uniform_int_distribution<int> dist_vertice(0, qtdVertices - 1); 
-
+    int id = 0;
     for(int i = 0; i < qtdVertices; ++i)
     {
 
@@ -50,8 +50,8 @@ Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
             if (verticeOrigem == verticeDestino ) continue;
 
             ll peso = dist_peso(rng); 
-            verticeOrigem->adicionar_aresta(peso, verticeDestino);
-            verticeDestino->adicionar_aresta(peso, verticeOrigem);
+            verticeOrigem->adicionar_aresta(peso, verticeDestino,id);
+            verticeDestino->adicionar_aresta(peso, verticeOrigem,id++);
         }
 
         // cout << "Ordem do vertice " << verticeOrigem->id << ": " << verticeOrigem->grau << endl;
@@ -78,14 +78,14 @@ Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
  * - O `second` (std::vector<Aresta>) é o caminho como uma sequência de arestas
  * do vértice inicial ao destino. Retorna um vetor vazio se não houver caminho.
  */
-pair<ll,vector<Aresta>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino)
+pair<ll,vector<int>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino)
 {
     ll INF = LLONG_MAX;
     priority_queue<pair<ll,Vertice*>,vector<pair<ll,Vertice*>>,greater<pair<ll,Vertice*>>>pq;//modifica a estrutura para ordenar do menor para o maior
     pq.push({0,inicio});
     map<Vertice*,ll>caminho;
 
-    map<Vertice*,pair<Vertice*,Aresta>>caminho_final;
+    map<Vertice*,pair<Vertice*,int>>caminho_final;
 
     for(auto v : g->vertices)
     {
@@ -107,7 +107,7 @@ pair<ll,vector<Aresta>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino)
                 {
                     caminho[aresta.destino] = caminho[vertice_atual] + aresta.peso;
                     pq.push({caminho[aresta.destino],aresta.destino});
-                    caminho_final[aresta.destino] = {vertice_atual,aresta};
+                    caminho_final[aresta.destino] = {vertice_atual,aresta.id};
                 }
 
             }
@@ -115,14 +115,14 @@ pair<ll,vector<Aresta>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino)
         if(vertice_atual==destino) break; //quando o vertice destino for rotulado encerra o algoritmo e retorna
     }
 
-    if(caminho[destino]==INF) return{-1,vector<Aresta>{}}; //não existe caminho entre esses vertices
-    vector<Aresta>path;
+    if(caminho[destino]==INF) return{-1,vector<int>{}}; //não existe caminho entre esses vertices
+    vector<int>path;
     Vertice* verticeAtual = destino;
     
     while(verticeAtual!=nullptr and verticeAtual!=inicio)
     {
 
-        Aresta aresta_atual = caminho_final[verticeAtual].s;
+        int aresta_atual = caminho_final[verticeAtual].s;
         verticeAtual = caminho_final[verticeAtual].f;
         path.push_back(aresta_atual);
 
@@ -145,17 +145,22 @@ pair<ll,vector<Aresta>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino)
  * @param inicio Ponteiro para o vértice de onde as arestas serão adicionadas.
  * @param arestas Um `std::vector` de objetos Aresta a serem adicionados ao vértice `inicio`.
  */
-void duplicar_arestas(Vertice* inicio, vector<Aresta> arestas)
+void duplicar_arestas(Vertice* inicio,  vector<int> ids_arestas) 
 {
+    if (!inicio || ids_arestas.empty()) return;
 
-    inicio->adicionar_aresta(arestas[0].peso,arestas[0].destino);
-    arestas[0].destino->adicionar_aresta(arestas[0].peso,inicio);
+    Vertice* atual = inicio;
+    int novo_id = 100; 
 
-        for(int i = 0;i < arestas.size()-1;i++)
-        {
-        arestas[i].destino -> adicionar_aresta(arestas[i+1].peso,arestas[i+1].destino);
-        arestas[i+1].destino -> adicionar_aresta(arestas[i+1].peso,arestas[i].destino);
-        }
+    for (size_t i = 0; i < ids_arestas.size(); ++i) {
+        
+        Aresta aresta_original = atual->findArestaById(ids_arestas[i]);
+        atual->adicionar_aresta(aresta_original.peso, aresta_original.destino, novo_id);
+        aresta_original.destino->adicionar_aresta(aresta_original.peso, atual, novo_id);
+        
+        novo_id++;
+        atual = aresta_original.destino;
+    }
 }
 
 
