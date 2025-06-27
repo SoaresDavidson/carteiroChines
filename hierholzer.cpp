@@ -4,71 +4,75 @@
 
 using namespace std;
 
-vector<vector<Vertice*>> ciclos;
-vector<Vertice*> sequencia;
-Vertice* pai = nullptr;
 
-void dfs(Grafo *g, int v){
+void dfs(Grafo *g, int v, Vertice* &pai, vector<Vertice*> &sequencia, vector<vector<Vertice*>> &ciclos, vector<vector<int>> &vis) {
     Vertice* Vertice = g->vertices[v];
-    for (auto& aresta : Vertice->arestas) {
-        if (pai == nullptr) pai = Vertice;
+    for (Aresta aresta : Vertice->arestas) {
         int w = aresta.destino->id;
-
+        if (vis[Vertice->id][w] <= 0) continue;
+        vis[Vertice->id][w] -= 1;
+        vis[w][Vertice->id] -= 1;
         if (Vertice->grau == 0) return;
 
+        if (pai == nullptr) pai = Vertice;
+
         sequencia.push_back(Vertice);
-        Vertice->remover_aresta(w);
-        g->vertices[w]->remover_aresta(Vertice->id);
-            
+
 
         if (pai->id == w){
             sequencia.push_back(pai);
             ciclos.push_back(sequencia);
             sequencia.clear();
-            // cout << "ciclo!" << endl;
             pai = nullptr;
         }
 
-        // cout << v+1 << " vai para " << w+1 << endl;
-        dfs(g, w);
+        dfs(g, w, pai, sequencia, ciclos, vis);
     }
 }
 
 vector<Vertice*> hierholzer(Grafo* g){
-    dfs(g, 0);
+    int tamanho = g->vertices.size()/2;
+    vector<vector<Vertice*>> ciclos;
+    vector<Vertice*> sequencia;
+    Vertice* pai = nullptr;
+    vector<vector<int>> vis(tamanho, vector<int>(tamanho, 0));
+
+    for (Vertice* v : g->vertices){
+        for (Aresta a : v->arestas){
+            vis[v->id][a.destino->id]++;
+        }
+    }
+    dfs(g, 0, pai, sequencia, ciclos, vis);
 
     vector<Vertice*> euleriano;
-    for (auto i : ciclos){
+    for (auto& i : ciclos){
         if (euleriano.empty()){
             euleriano.insert(euleriano.begin(), i.begin(), i.end());
             continue;
         }
 
         auto it = find(euleriano.begin(), euleriano.end(), i[0]);
-        // if (it == euleriano.end()) continue;
         euleriano.insert(it+1, i.begin()+1, i.end());
+        i.clear();
     }
-
+    if (!sequencia.empty()) throw runtime_error("O grafo não é euleriano!");
     return euleriano;
 }
 
 int main(){
     int v, a; cin >> v >> a;
-    Grafo grafo = Grafo();
+    Grafo grafo = Grafo(v);
 
     for (int i = 0; i < v; i++){
-        Vertice* novo = new Vertice();
-        novo->id = i;
+        Vertice* novo = new Vertice(i);
         grafo.adicionar_vertice(novo);
     }
 
     for(int i = 0;i < a; i++){
         int v1, v2; cin >> v1 >> v2; v1--;v2--;
-        grafo.vertices[v1]->adicionar_aresta(1, grafo.vertices[v2]);
-        grafo.vertices[v2]->adicionar_aresta(1, grafo.vertices[v1]);
+        grafo.vertices[v1]->adicionar_aresta(1, grafo.vertices[v2], i);
+        grafo.vertices[v2]->adicionar_aresta(1, grafo.vertices[v1], i);
     }
-    pai = 0;
-    dfs(&grafo, 0);
 
     vector<Vertice*> resultado = hierholzer(&grafo);
     for(auto i : resultado){
