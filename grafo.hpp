@@ -187,7 +187,8 @@ public:
             this->adicionar_vertice(a);
         }
     }
-        bool Conexo() {
+
+    bool Conexo() {
         if (ordem == 0) return true; 
 
         std::unordered_set<int> visitados;
@@ -235,25 +236,27 @@ public:
          return qtd;
     }
 
-    void salvar_grafo(const string& nome_arquivo) {
-    ofstream arquivo(nome_arquivo, ios::app);
+    void salvar_grafo(const string& nome_arquivo) 
+    {
+        ofstream arquivo(nome_arquivo);
 
-    if (!arquivo.is_open()) {
-        cerr << "Erro ao abrir o arquivo para escrita!" << endl;
-        return;
-    }
-
-    arquivo << this->ordem << " " << qtdArestas() << endl;
-
-    for (auto vertice : this->vertices) {
-        for (auto aresta : vertice->arestas) {
-            arquivo << vertice->id << " " 
-                    << aresta.destino->id << " " 
-                    << aresta.peso << endl;
+        if (!arquivo.is_open()) 
+        {
+            cerr << "Erro ao abrir o arquivo para escrita!" << endl;
+            return;
         }
-    }
-    arquivo << endl;
-    arquivo.close();
+
+        arquivo << this->ordem << " " << qtdArestas() << endl;
+
+        for (auto vertice : this->vertices) {
+            for (auto aresta : vertice->arestas) {
+                arquivo << vertice->id << " " 
+                        << aresta.destino->id << " " 
+                        << aresta.peso << endl;
+            }
+        }
+        arquivo << endl;
+        arquivo.close();
 }
 
     ll calcular_peso(){

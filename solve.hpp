@@ -24,41 +24,48 @@ using namespace std;
  * à prevenção de laços e arestas paralelas, o grau real pode variar.
  * @return Um objeto Grafo que representa o grafo aleatoriamente gerado.
  */
-Grafo gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
-    Grafo g(qtdVertices);
-
-    if (qtdVertices <= 1) return g;
-
-    mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
-   
-    uniform_int_distribution<ll> dist_peso(1, pesoMax - 1); 
-    uniform_int_distribution<int> dist_vertice(0, qtdVertices - 1); 
-    int id = 0;
-    for(int i = 0; i < qtdVertices; ++i)
-    {
-
-        Vertice* verticeOrigem = g.vertices[i];
-
-        while ((verticeOrigem->grau < grauMax) || verticeOrigem->isEmpty()) 
+Grafo* gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
+    
+    
+    while(true){
+        Grafo* g = new Grafo(qtdVertices);
+        if (qtdVertices <= 1) return g;
+    
+        mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
+       
+        uniform_int_distribution<ll> dist_peso(1, pesoMax - 1); 
+        uniform_int_distribution<int> dist_vertice(0, qtdVertices - 1); 
+        int id = 0;
+        for(int i = 0; i < qtdVertices; ++i)
         {
-
-            int indiceDestino = dist_vertice(rng);
-            Vertice* verticeDestino = g.vertices[indiceDestino];
-
-            if(verticeOrigem->grau >= grauMax or (verticeOrigem->isEmpty()==false and verticeDestino->grau >= grauMax)) break;
-
-            if (verticeOrigem == verticeDestino ) continue;
-
-            ll peso = dist_peso(rng); 
-            verticeOrigem->adicionar_aresta(peso, verticeDestino,id);
-            verticeDestino->adicionar_aresta(peso, verticeOrigem,id++);
+    
+            Vertice* verticeOrigem = g->vertices[i];
+    
+            while ((verticeOrigem->grau < grauMax) || verticeOrigem->isEmpty()) 
+            {
+    
+                int indiceDestino = dist_vertice(rng);
+                Vertice* verticeDestino = g->vertices[indiceDestino];
+    
+                if(verticeOrigem->grau >= grauMax or (verticeOrigem->isEmpty()==false and verticeDestino->grau >= grauMax)) break;
+    
+                if (verticeOrigem == verticeDestino ) continue;
+    
+                ll peso = dist_peso(rng); 
+                verticeOrigem->adicionar_aresta(peso, verticeDestino,id);
+                verticeDestino->adicionar_aresta(peso, verticeOrigem,id++);
+            }
         }
-
-        // cout << "Ordem do vertice " << verticeOrigem->id << ": " << verticeOrigem->grau << endl;
-
+    
+            // cout << "Ordem do vertice " << verticeOrigem->id << ": " << verticeOrigem->grau << endl;
+        if(!g->Conexo()){
+            delete g;
+        }else{
+            return g;
+        }
+       
     }
 
-    return g;
 }
 
 /*
@@ -237,11 +244,62 @@ void emparelhamentos(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, V
     }
 }
 
-vector<vector<Vertice*>> ciclos;
-vector<Vertice*> sequencia;
-Vertice* pai = nullptr;
 
-void dfs(Grafo *g, int v){
+void heuristica_emparelhamento(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, Vertice*>>>* resultado, vector<pair<Vertice*, Vertice*>>* emparelhamentoAtual = new vector<pair<Vertice*, Vertice*>>())
+{
+    //Recebe um vetor de vetores de pares de vértices e o preenche com cada emparelhamento possível
+    if ((*restantes).empty())
+    {
+        (*resultado).push_back(*emparelhamentoAtual);
+        return;
+    }
+
+    cout << "Existem vertices restantes. Executando" << endl;
+
+    Vertice* u = (*restantes)[0];
+    int size = restantes->size();
+/*
+    if (size <= 4)
+    {
+        for (auto v: *restantes)
+        {
+            cout << "Entrou no loop de vertices" << endl;
+            if (v == u) continue;
+            vector<pair<Vertice*, Vertice*>> novo_Emparelhamento = *emparelhamentoAtual;
+            novo_Emparelhamento.push_back(make_pair(u, v));
+            vector<Vertice*> novosRestantes = *restantes;
+            cout << "Fez novo emparelhamento" << endl;
+            novosRestantes.erase(remove_if(novosRestantes.begin(), novosRestantes.end(), [&](Vertice* x)
+        {
+            return x == u || x == v;
+        }), novosRestantes.end());
+        cout << "Vai chamar a proxima recursao" << endl;
+        emparelhamentos(&novosRestantes, resultado, &novo_Emparelhamento);
+        }
+    }
+*/
+  
+        for (size_t i = 1; i < size; i*= 2)
+        {
+            auto v = (*restantes)[i];
+             cout << "Entrou no loop de vertices" << endl;
+            if (v == u) continue;
+            vector<pair<Vertice*, Vertice*>> novo_Emparelhamento = *emparelhamentoAtual;
+            novo_Emparelhamento.push_back(make_pair(u, v));
+            vector<Vertice*> novosRestantes = *restantes;
+            cout << "Fez novo emparelhamento" << endl;
+            novosRestantes.erase(remove_if(novosRestantes.begin(), novosRestantes.end(), [&](Vertice* x)
+        {
+            return x == u || x == v;
+        }), novosRestantes.end());
+        cout << "Vai chamar a proxima recursao" << endl;
+        emparelhamentos(&novosRestantes, resultado, &novo_Emparelhamento);
+        }
+    
+}
+
+
+void dfs(Grafo *g, int v,Vertice* pai, vector<Vertice*> sequencia, vector<vector<Vertice*>> ciclos){
     Vertice* Vertice = g->vertices[v];
     for (auto& aresta : Vertice->arestas) 
     {
@@ -265,7 +323,7 @@ void dfs(Grafo *g, int v){
         }
 
         // cout << v+1 << " vai para " << w+1 << endl;
-        dfs(g, w);
+        dfs(g, w,pai,sequencia,ciclos);
     }
 }
 
@@ -290,8 +348,11 @@ void dfs(Grafo *g, int v){
  * ou se as pré-condições não forem satisfeitas.
  */
 vector<Vertice*> hierholzer(Grafo* g)
-{
-    dfs(g, 0);
+{   
+    vector<vector<Vertice*>> ciclos;
+    vector<Vertice*> sequencia;
+    Vertice* pai = nullptr;
+    dfs(g, 0,pai,sequencia,ciclos);
 
     vector<Vertice*> euleriano;
     for (auto i : ciclos)
@@ -461,6 +522,8 @@ vector<Vertice*> fleury(Grafo* g,Vertice* vi)
     return ciclo;
 }
 
+
+
 void imprimir_caminho(vector<Vertice*> caminho){
     for(auto vertice : caminho){
         cout << vertice->id << "  ";
@@ -468,4 +531,16 @@ void imprimir_caminho(vector<Vertice*> caminho){
     cout << endl;
 }
 
+void caminho_euleriano(Grafo* grafo,bool hier){
+    vector<Vertice*> caminho;
+    if(hier){
+        caminho = hierholzer(grafo);
+        cout << "caminho euleriano feito usando hierholzer: " << endl;
+    } else {
+        caminho = fleury(grafo,grafo->vertices[0]);
+        cout << "caminho euleriano feito usando fleury: " << endl;
+        
+    }
+    imprimir_caminho(caminho);     
+}
 #endif
