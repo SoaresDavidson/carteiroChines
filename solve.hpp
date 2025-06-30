@@ -254,7 +254,7 @@ void heuristica_emparelhamento(vector<Vertice*>* restantes, vector<vector<pair<V
         return;
     }
 
-    cout << "Existem vertices restantes. Executando" << endl;
+    //cout << "Existem vertices restantes. Executando" << endl;
 
     Vertice* u = (*restantes)[0];
     int size = restantes->size();
@@ -282,17 +282,17 @@ void heuristica_emparelhamento(vector<Vertice*>* restantes, vector<vector<pair<V
         for (size_t i = 1; i < size; i*= 2)
         {
             auto v = (*restantes)[i];
-             cout << "Entrou no loop de vertices" << endl;
+            //cout << "Entrou no loop de vertices" << endl;
             if (v == u) continue;
             vector<pair<Vertice*, Vertice*>> novo_Emparelhamento = *emparelhamentoAtual;
             novo_Emparelhamento.push_back(make_pair(u, v));
             vector<Vertice*> novosRestantes = *restantes;
-            cout << "Fez novo emparelhamento" << endl;
+            //cout << "Fez novo emparelhamento" << endl;
             novosRestantes.erase(remove_if(novosRestantes.begin(), novosRestantes.end(), [&](Vertice* x)
         {
             return x == u || x == v;
         }), novosRestantes.end());
-        cout << "Vai chamar a proxima recursao" << endl;
+        //cout << "Vai chamar a proxima recursao" << endl;
         emparelhamentos(&novosRestantes, resultado, &novo_Emparelhamento);
         }
     
@@ -539,8 +539,18 @@ void caminho_euleriano(Grafo* grafo,bool hier){
     } else {
         caminho = fleury(grafo,grafo->vertices[0]);
         cout << "caminho euleriano feito usando fleury: " << endl;
-        
+
     }
-    imprimir_caminho(caminho);     
+    imprimir_caminho(caminho);
+}
+
+void decideEmparelhamento(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, Vertice*>>>* resultado, bool heuri){
+    if(heuri){
+        heuristica_emparelhamento(restantes, resultado);
+        cout << "emparelhamento feito com heuristica: " << endl;
+    } else {
+        emparelhamentos(restantes, resultado);
+        cout << "emparelhamento feito sem heuristica: " << endl;
+    }
 }
 #endif

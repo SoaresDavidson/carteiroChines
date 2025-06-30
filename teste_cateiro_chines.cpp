@@ -13,19 +13,20 @@ using namespace std;
 using namespace std::chrono;
 
 int main(){
-    int N = 10;
+    int N = 50;
     int iteracoes = 10;
     int tempo_medio = 0;
     cout << "Quantas execucoes vai ter esse codigo" << endl;
+    cout << N << " vertices" << "\n";
 
-    
-    Grafo* grafo = gerar_grafo_aleatorio(10,12,2);
-    grafo->salvar_grafo("grafo.txt");
-    
-    while(N--)
+
+    //Grafo* grafo = gerar_grafo_aleatorio(N, 12, 2);
+    //grafo->salvar_grafo("grafo.txt");
+
+    while(iteracoes--)
     {
         ifstream arquivo("grafo.txt"); // abre o arquivo
-        if (!arquivo.is_open()) 
+        if (!arquivo.is_open())
         {
             cerr << "Erro ao abrir o arquivo!" << endl;
             return 1;
@@ -33,11 +34,11 @@ int main(){
         auto inicio = high_resolution_clock::now();
 
         int qtdVertices,qtdArestas; 
-        cout << "Informe a quantidade de vertices e a de Arestas" <<endl;
+        //cout << "Informe a quantidade de vertices e a de Arestas" <<endl;
         arquivo >> qtdVertices >> qtdArestas;
         Grafo* grafo = new Grafo(qtdVertices);
 
-        cout << "Insira: (vertice inicial vertice final peso) o primeiro vertice comeca no 0" << endl;
+        //cout << "Insira: (vertice inicial vertice final peso) o primeiro vertice comeca no 0" << endl;
         //recebendo as arestas e construindo o grafo
         for(int i = 0;i<qtdArestas;i++){
             ll comeco,destino,peso; 
@@ -73,7 +74,7 @@ int main(){
 
         vector<vector<pair<Vertice*, Vertice*>>> emparelhamentos_gerados;
         ll peso_inicio = grafo->calcular_peso();
-        emparelhamentos(&vertices_impares,&emparelhamentos_gerados);
+        decideEmparelhamento(&vertices_impares,&emparelhamentos_gerados, false);
         cout << "Peso do Grafo inicial: " << peso_inicio << endl;
         ll peso_total = LLONG_MAX;
         vector<pair<Vertice*,vector<int>>>dup;
@@ -83,7 +84,7 @@ int main(){
             ll soma_peso = 0;
             vector<pair<Vertice*,vector<int>>>duplicar;
 
-        for(auto [vertice_inicial,vertice_final] : emparelhamento)
+        for(auto [vertice_inicial, vertice_final] : emparelhamento)
         {
                 if(dp[vertice_inicial->id][vertice_final->id].first == -1)
                 {
@@ -105,10 +106,10 @@ int main(){
                     duplicar.push_back({vertice_inicial,arestas});
 
                 }
-                
+
 
                 if(soma_peso > peso_total) break;
-        } 
+        }
 
         if(soma_peso < peso_total)
         {
@@ -130,7 +131,7 @@ int main(){
         // grafo.salvar_grafo("grafos.txt");
 
         grafo->imprimir_grafo();
-        
+
         auto fim = high_resolution_clock::now();
         auto duracao = duration_cast<milliseconds>(fim - inicio);
         caminho_euleriano(grafo,true);
@@ -138,9 +139,9 @@ int main(){
         tempo_medio+=duracao.count();
         delete grafo;
         arquivo.close();
-        
+
     }
-    cout << "Tempo de execucao medio foi: " << tempo_medio/iteracoes << endl;
+    cout << "Tempo de execucao medio por interacao foi: " << tempo_medio/10 << " ms" << endl;
     return 0;
 }
 //grafo que eu mandei no grupo 
