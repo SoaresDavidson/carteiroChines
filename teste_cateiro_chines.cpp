@@ -13,19 +13,18 @@ using namespace std;
 using namespace std::chrono;
 
 int main(){
-    int N = 50;
+    int N = 500;
     int iteracoes = 10;
     int tempo_medio = 0;
     cout << "Quantas execucoes vai ter esse codigo" << endl;
     cout << N << " vertices" << "\n";
 
-
-    //Grafo* grafo = gerar_grafo_aleatorio(N, 12, 2);
-    //grafo->salvar_grafo("grafo.txt");
+    Grafo* grafo = gerar_grafo_aleatorio(N, 12, 6,14);
+    grafo->salvar_grafo("grafo_500.txt");
 
     while(iteracoes--)
     {
-        ifstream arquivo("grafo.txt"); // abre o arquivo
+        ifstream arquivo("grafo_500.txt"); // abre o arquivo
         if (!arquivo.is_open())
         {
             cerr << "Erro ao abrir o arquivo!" << endl;

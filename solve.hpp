@@ -24,48 +24,47 @@ using namespace std;
  * à prevenção de laços e arestas paralelas, o grau real pode variar.
  * @return Um objeto Grafo que representa o grafo aleatoriamente gerado.
  */
-Grafo* gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax){
-    
-    
-    while(true){
+Grafo* gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax, int quantidadeVerticesImpares) {
+    while(true) {
         Grafo* g = new Grafo(qtdVertices);
         if (qtdVertices <= 1) return g;
-    
+
         mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
-       
         uniform_int_distribution<ll> dist_peso(1, pesoMax - 1); 
         uniform_int_distribution<int> dist_vertice(0, qtdVertices - 1); 
+        
         int id = 0;
-        for(int i = 0; i < qtdVertices; ++i)
-        {
-    
+        for(int i = 0; i < qtdVertices; ++i) {
             Vertice* verticeOrigem = g->vertices[i];
-    
-            while ((verticeOrigem->grau < grauMax) || verticeOrigem->isEmpty()) 
-            {
-    
+            
+            while ((verticeOrigem->grau < grauMax) || verticeOrigem->isEmpty()) {
                 int indiceDestino = dist_vertice(rng);
                 Vertice* verticeDestino = g->vertices[indiceDestino];
-    
+
                 if(verticeOrigem->grau >= grauMax or (verticeOrigem->isEmpty()==false and verticeDestino->grau >= grauMax)) break;
-    
-                if (verticeOrigem == verticeDestino ) continue;
-    
+                if (verticeOrigem == verticeDestino) continue;
+
                 ll peso = dist_peso(rng); 
-                verticeOrigem->adicionar_aresta(peso, verticeDestino,id);
-                verticeDestino->adicionar_aresta(peso, verticeOrigem,id++);
+                verticeOrigem->adicionar_aresta(peso, verticeDestino, id);
+                verticeDestino->adicionar_aresta(peso, verticeOrigem, id++);
             }
         }
-    
-            // cout << "Ordem do vertice " << verticeOrigem->id << ": " << verticeOrigem->grau << endl;
-        if(!g->Conexo()){
+
+        // Verificar se o grafo atende aos requisitos de vértices ímpares
+        int countImpares = 0;
+        for(int i = 0; i < qtdVertices; ++i) {
+            if(g->vertices[i]->grau % 2 != 0) {
+                countImpares++;
+            }
+        }
+
+        if(!g->Conexo() || countImpares != quantidadeVerticesImpares) {
             delete g;
-        }else{
+            continue;
+        } else {
             return g;
         }
-       
     }
-
 }
 
 /*
