@@ -81,7 +81,7 @@ Grafo* gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax, int quant
  * @return Um `std::pair` onde:
  * - O `first` (long long) é a distância mínima do vértice inicial ao destino.
  * Retorna -1 se não houver caminho (destino inalcançável).
- * - O `second` (std::vector<Aresta>) é o caminho como uma sequência de arestas
+ * - O `second` (std::vector<int>) é o caminho como uma sequência de arestas
  * do vértice inicial ao destino. Retorna um vetor vazio se não houver caminho.
  */
 pair<ll,vector<int>> dijkstra(Grafo* g, Vertice* inicio, Vertice* destino)
@@ -244,6 +244,22 @@ void emparelhamentos(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, V
 }
 
 
+
+/*
+@brief Gera uma fração dos emparelhamentos possíveis a partir de um conjunto de vértices.*
+Esta função recursiva explora algumas das combinações de emparelhamento entre os vértices restantes, evitando enumeração completa
+e tornando o cálculo da emparelhamento máximo de custo mínimo mais rápido.
+O iterador das possibilidades é multiplicado por 2 em vez de seguir uma progressão linear, por isso existe a redução de respostas.
+A função constrói e armazena todos esses emparelhamentos completos no vetor 'resultado'.
+
+@param restantes Ponteiro para um vetor de Vertice* contendo os vértices ainda não emparelhados
+na chamada recursiva atual.
+@param resultado Ponteiro para um vetor de vetores de pares de Vertice*. Este parâmetro acumula
+todos os emparelhamentos completos encontrados.
+@param emparelhamentoAtual Ponteiro para um vetor de pares de Vertice*. Representa o emparelhamento
+que está sendo construído na iteração atual da recursão. É inicializado
+como um novo vetor vazio por padrão na primeira chamada.
+*/
 void heuristica_emparelhamento(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, Vertice*>>>* resultado, vector<pair<Vertice*, Vertice*>>* emparelhamentoAtual = new vector<pair<Vertice*, Vertice*>>())
 {
     //Recebe um vetor de vetores de pares de vértices e o preenche com cada emparelhamento possível
@@ -530,21 +546,43 @@ void imprimir_caminho(vector<Vertice*> caminho){
     cout << endl;
 }
 
-void caminho_euleriano(Grafo* grafo,bool hier){
+/*
+ * @brief Encontra e imprime um caminho euleriano em um grafo.
+ * * Um caminho euleriano é um percurso que passa por cada aresta do grafo exatamente uma vez.
+ * Esta função pode utilizar dois algoritmos diferentes para realizar essa tarefa,
+ * selecionados através de um parâmetro booleano.
+ * * @param grafo Um ponteiro para o objeto Grafo no qual o caminho será buscado.
+ * @param hier  Um booleano que funciona como seletor de algoritmo:
+ * - `true`: Utiliza o algoritmo de Hierholzer.
+ * - `false`: Utiliza o algoritmo de Fleury.
+ */
+void caminho_euleriano(Grafo* grafo, bool hier) {
+ 
     vector<Vertice*> caminho;
-    if(hier){
+    if (hier) {
         caminho = hierholzer(grafo);
         cout << "caminho euleriano feito usando hierholzer: " << endl;
     } else {
-        caminho = fleury(grafo,grafo->vertices[0]);
+        caminho = fleury(grafo, grafo->vertices[0]);
         cout << "caminho euleriano feito usando fleury: " << endl;
-
     }
+
     imprimir_caminho(caminho);
 }
 
-void decideEmparelhamento(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, Vertice*>>>* resultado, bool heuri){
-    if(heuri){
+/*
+ * @brief Realiza o emparelhamento de um conjunto de vértices.
+ * * Em teoria dos grafos, um emparelhamento (ou matching) é um conjunto de arestas
+ * onde não há vértices em comum. Esta função decide entre uma abordagem heurística
+ * (rápida, mas não necessariamente ótima) e uma abordagem exata para encontrar os pares.
+ * * @param restantes Ponteiro para um vetor de vértices que ainda não foram emparelhados.
+ * @param resultado Ponteiro para a estrutura de dados que armazenará os pares resultantes.
+ * @param heuri     Um booleano que determina a abordagem:
+ * - `true`: Utiliza uma função heurística para emparelhar.
+ * - `false`: Utiliza um algoritmo exato (não heurístico).
+ */
+void decideEmparelhamento(vector<Vertice*>* restantes, vector<vector<pair<Vertice*, Vertice*>>>* resultado, bool heuri) {
+    if (heuri) {
         heuristica_emparelhamento(restantes, resultado);
         cout << "emparelhamento feito com heuristica: " << endl;
     } else {

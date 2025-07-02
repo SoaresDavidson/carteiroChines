@@ -40,14 +40,39 @@ public:
     void aumentar_grau(){
         grau++;
     }
+
+
+    /*
+     * @brief Procura uma aresta específica pelo seu ID em uma coleção de arestas.
+     *
+     * Esta função realiza uma busca linear em uma coleção de arestas (um membro da classe,
+     * chamado 'arestas') para encontrar aquela que corresponde a um ID fornecido.
+     *
+     * @param idProcurado O identificador inteiro da aresta que se deseja localizar.
+     *
+     * @return Retorna uma cópia do objeto Aresta se o ID for encontrado.
+     * Se nenhuma aresta com o ID especificado for encontrada após percorrer
+     * toda a coleção, retorna um objeto Aresta vazio (construído por padrão),
+     * sinalizando que a busca falhou.
+     */
     Aresta findArestaById(int idProcurado) {
-        for (auto aresta : arestas) {           // Percorre todas as arestas
-            if (aresta.id == idProcurado) {      // Se encontrar o ID
-                return aresta;                  // Retorna a aresta
+    for (auto aresta : arestas) {
+        if (aresta.id == idProcurado) {
+            return aresta;
+        }
+    }
+
+    return {};
+}
+    Aresta findArestaById(int idProcurado) {
+        for (auto aresta : arestas) {           
+            if (aresta.id == idProcurado) {      
+                return aresta;                  
             }
         }
-        return {};  // Se não encontrar, retorna nullptr
+        return {};  
     }
+
     /*
      * @brief Adiciona uma nova aresta a partir deste vértice.
      *
@@ -188,28 +213,41 @@ public:
         }
     }
 
+    /*
+     * @brief Verifica se o grafo é conexo utilizando uma Busca em Profundidade (DFS).
+     *
+     * Um grafo é considerado conexo se existe um caminho entre qualquer par de seus vértices.
+     * A função implementa um algoritmo de travessia (DFS) a partir de um vértice inicial
+     * para contar quantos vértices são alcançáveis. Se todos os vértices forem alcançados,
+     * o grafo é conexo.
+     *
+     * @return bool - Retorna 'true' se o grafo for conexo e 'false' caso contrário.
+     */
     bool Conexo() {
-        if (ordem == 0) return true; 
+        if (ordem == 0) return true;
 
         std::unordered_set<int> visitados;
-        std::stack<int> pilha;
 
+        std::stack<int> pilha;
 
         pilha.push(0);
         visitados.insert(0);
 
         while (!pilha.empty()) {
-            int atual = pilha.top();
+
+            int atual_id = pilha.top();
             pilha.pop();
 
-            for (Aresta aresta : vertices[atual]->arestas) {
+            for (Aresta aresta : vertices[atual_id]->arestas) {
                 Vertice* vizinho = aresta.destino;
+
                 if (visitados.find(vizinho->id) == visitados.end()) {
-                    visitados.insert(vizinho->id);
-                    pilha.push(vizinho->id);
+                    visitados.insert(vizinho->id); 
+                    pilha.push(vizinho->id);       
                 }
             }
         }
+
         return (visitados.size() == static_cast<size_t>(ordem));
     }
 
@@ -236,11 +274,19 @@ public:
          return qtd;
     }
 
-    void salvar_grafo(const string& nome_arquivo) 
+    /*
+    * @brief Salva a estrutura atual do grafo em um arquivo de texto.
+    * Esta função permite persistir os dados do grafo (vértices e arestas)
+    * para que possam ser recarregados ou analisados posteriormente.
+    *
+    * @param nome_arquivo Uma string constante representando o nome do arquivo
+    * onde o grafo será salvo.
+    */
+    void salvar_grafo(const string& nome_arquivo)
     {
         ofstream arquivo(nome_arquivo);
 
-        if (!arquivo.is_open()) 
+        if (!arquivo.is_open())
         {
             cerr << "Erro ao abrir o arquivo para escrita!" << endl;
             return;
@@ -248,27 +294,38 @@ public:
 
         arquivo << this->ordem << " " << qtdArestas() << endl;
 
-        for (auto vertice : this->vertices) {
-            for (auto aresta : vertice->arestas) {
-                arquivo << vertice->id << " " 
-                        << aresta.destino->id << " " 
+        for (auto vertice : this->vertices) 
+        {
+            for (auto aresta : vertice->arestas) 
+            {
+                arquivo << vertice->id << " "
+                        << aresta.destino->id << " "
                         << aresta.peso << endl;
             }
         }
+        
         arquivo << endl;
         arquivo.close();
-}
-
-    ll calcular_peso(){
+    }
+    
+    /*
+    * @brief Calcula a soma total dos pesos de todas as arestas do grafo.
+    * Projetado para grafos não-direcionados onde cada aresta é representada
+    * duas vezes na lista de adjacências.
+    *
+    * @return ll (long long) - A soma total dos pesos de todas as arestas únicas.
+    */
+    ll calcular_peso()
+    {
         ll sum = 0;
         for(auto vertice : this->vertices)
         {
             for(auto arestas : vertice->arestas)
             {
-                sum+=arestas.peso;
+                sum += arestas.peso;
             }
         }
-        return sum/2;
+        return sum / 2;
     }
 
 };
