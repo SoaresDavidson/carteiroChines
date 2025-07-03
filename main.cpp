@@ -2,7 +2,7 @@
 #include <chrono>
 #include <fstream>
 #include "grafo.hpp"
-#include "solve.hpp"
+#include "util.hpp"
 #define ALL(x) x.begin(), x.end()
 #define ll long long
 #define f first;
@@ -133,7 +133,7 @@ int main(){
 
         auto fim = high_resolution_clock::now();
         auto duracao = duration_cast<milliseconds>(fim - inicio);
-        caminho_euleriano(grafo,true);
+        caminho_euleriano(grafo, true);
         cout << "Tempo de execucao: " << duracao.count() << " ms" << endl;
         tempo_medio+=duracao.count();
         delete grafo;
