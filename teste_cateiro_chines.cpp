@@ -13,7 +13,7 @@ using namespace std;
 using namespace std::chrono;
 
 int main(){
-    int N = 500;
+    int N = 30;
     int iteracoes = 10;
     int tempo_medio = 0;
     cout << "Quantas execucoes vai ter esse codigo" << endl;

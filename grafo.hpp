@@ -56,15 +56,6 @@ public:
      * sinalizando que a busca falhou.
      */
     Aresta findArestaById(int idProcurado) {
-    for (auto aresta : arestas) {
-        if (aresta.id == idProcurado) {
-            return aresta;
-        }
-    }
-
-    return {};
-}
-    Aresta findArestaById(int idProcurado) {
         for (auto aresta : arestas) {           
             if (aresta.id == idProcurado) {      
                 return aresta;                  
@@ -307,7 +298,7 @@ public:
         arquivo << endl;
         arquivo.close();
     }
-    
+
     /*
     * @brief Calcula a soma total dos pesos de todas as arestas do grafo.
     * Projetado para grafos não-direcionados onde cada aresta é representada

@@ -314,7 +314,7 @@ void heuristica_emparelhamento(vector<Vertice*>* restantes, vector<vector<pair<V
 }
 
 
-void dfs(Grafo *g, int v,Vertice* pai, vector<Vertice*> sequencia, vector<vector<Vertice*>> ciclos){
+void dfs(Grafo *g, int v,Vertice* pai, vector<Vertice*>& sequencia, vector<vector<Vertice*>>& ciclos){
     Vertice* Vertice = g->vertices[v];
     for (auto& aresta : Vertice->arestas) 
     {
