@@ -24,7 +24,7 @@ using namespace std;
  * à prevenção de laços e arestas paralelas, o grau real pode variar.
  * @return Um objeto Grafo que representa o grafo aleatoriamente gerado.
  */
-Grafo* gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax, int quantidadeVerticesImpares) {
+Grafo* gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax) {
     while(true) {
         Grafo* g = new Grafo(qtdVertices);
         if (qtdVertices <= 1) return g;
@@ -58,7 +58,7 @@ Grafo* gerar_grafo_aleatorio(int qtdVertices, ll pesoMax, int grauMax, int quant
             }
         }
 
-        if(!g->Conexo() || countImpares != quantidadeVerticesImpares) {
+        if(!g->Conexo()) {
             delete g;
             continue;
         } else {
@@ -589,5 +589,77 @@ void decideEmparelhamento(vector<Vertice*>* restantes, vector<vector<pair<Vertic
         emparelhamentos(restantes, resultado);
         cout << "emparelhamento feito sem heuristica: " << endl;
     }
+}
+void aplicar_carteiro_chines(Grafo* grafo, bool heuristica,int qtdVertices)
+{
+
+    pair<ll,vector<int>> dp[qtdVertices][qtdVertices];
+
+        for(int i = 0;i < qtdVertices; i++)
+        {
+            for(int j = 0; j < qtdVertices;j++) dp[i][j] = {-1,vector<int>{}};
+        }
+
+
+        vector<Vertice*> vertices_impares = impares(grafo);
+
+        if(vertices_impares.size()%2!=0) 
+        {
+            cout << "Nao da pra aplicar o carteiro chines" << endl;
+            exit(0);
+        }
+
+        vector<vector<pair<Vertice*, Vertice*>>> emparelhamentos_gerados;
+        ll peso_inicio = grafo->calcular_peso();
+        decideEmparelhamento(&vertices_impares,&emparelhamentos_gerados, heuristica);
+        cout << "Peso do Grafo inicial: " << peso_inicio << endl;
+        ll peso_total = LLONG_MAX;
+        vector<pair<Vertice*,vector<int>>>dup;
+
+        for(auto emparelhamento : emparelhamentos_gerados)
+        {
+            ll soma_peso = 0;
+            vector<pair<Vertice*,vector<int>>>duplicar;
+
+            for(auto [vertice_inicial, vertice_final] : emparelhamento)
+            {
+                    if(dp[vertice_inicial->id][vertice_final->id].first == -1)
+                    {
+                        auto[peso,arestas] = dijkstra(grafo,vertice_inicial,vertice_final);
+
+                        dp[vertice_inicial->id][vertice_final->id] = {peso,arestas};
+
+                        dp[vertice_final->id][vertice_inicial->id] = {peso,arestas};
+
+                        soma_peso+=peso;
+
+                        duplicar.push_back({vertice_inicial,arestas});
+
+                    } else {
+
+                        ll peso = dp[vertice_inicial->id][vertice_final->id].first;
+                        vector<int>arestas =dp[vertice_inicial->id][vertice_final->id].second;
+                        soma_peso+=peso;
+                        duplicar.push_back({vertice_inicial,arestas});
+
+                    }
+
+                    if(soma_peso > peso_total) break;
+        }
+
+        if(soma_peso < peso_total)
+        {
+                peso_total = soma_peso;
+                dup = duplicar;
+        }
+
+    }
+
+        for(auto  [vertice_inicial,aresta] : dup)
+        {
+            duplicar_arestas(vertice_inicial, aresta);
+        }
+        cout << "Grafo final: " << endl;
+        grafo->imprimir_grafo();
 }
 #endif
